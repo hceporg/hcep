@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Highlight Creations
 
-## Getting Started
+Next.js (App Router) + Tailwind CSS wedding site for Agra — **Supabase-only** backend (DB, Auth, Storage). No Cloudflare/R2.
 
-First, run the development server:
+## Free-tier map
+
+| Resource | Supabase Free | How we use it |
+|----------|---------------|---------------|
+| Database | 500 MB | Postgres tables (`banners`, `blog_posts`, leads, etc.) |
+| File storage | 1 GB | Single public bucket `media` — blog images + banner videos |
+| Egress | 5 GB / mo | Public site + Storage CDN |
+| Auth | 50k MAU | Single admin login |
+
+Compress banner videos (ffmpeg) before upload. Blog images ≤ 5 MB; banner videos ≤ 80 MB.
+
+## Quick start
 
 ```bash
+npm install
+cp .env.example .env.local
+# fill NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Site: [http://localhost:3000](http://localhost:3000)
+- Admin: [http://localhost:3000/admin](http://localhost:3000/admin)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a Supabase project.
+2. Run `supabase/schema.sql` in the SQL editor (tables + `media` bucket + RLS).
+3. Auth → create an admin user → sign in at `/admin/login`.
+4. Deploy to Vercel; add the same env vars plus `CRON_SECRET`.
 
-## Learn More
+### Keep-alive (avoid 7-day pause)
 
-To learn more about Next.js, take a look at the following resources:
+Vercel Cron hits `/api/cron/keep-alive` every 6 days (`vercel.json`). Set `CRON_SECRET` in Vercel so only the cron can call it.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Manual test:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://your-domain.com/api/cron/keep-alive
+```
 
-## Deploy on Vercel
+## Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Piece | Service |
+|-------|---------|
+| Frontend | Next.js + Tailwind → Vercel |
+| DB + Auth + Storage | Supabase |
+| Reels | Instagram oEmbed |
+| Keep-alive | Vercel Cron → `/api/cron/keep-alive` |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Pages
+
+- `/` — Hero, reels, Google reviews, venue CTA
+- `/venues`, `/blog`, `/portfolio`, `/price-beat-challenge`, `/about`, `/services`, `/contact`, `/faq`, `/privacy`, `/terms`
+- `/admin` — Banners, reels, reviews, venues, blog, portfolio, enquiries, stats, settings
