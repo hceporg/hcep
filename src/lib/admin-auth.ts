@@ -24,14 +24,15 @@ export async function requireAdmin() {
     redirect("/admin/login");
   }
 
-  // Optional role check — profiles row is created on signup via schema trigger
-  const { data: profile } = await supabase
+  // Optional role check — only enforce when a profiles row exists
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile && profile.role !== "admin") {
+  // Ignore missing table / RLS errors so login still works if schema isn't fully applied
+  if (!profileError && profile && profile.role !== "admin") {
     await supabase.auth.signOut();
     redirect("/admin/login?error=forbidden");
   }

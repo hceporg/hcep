@@ -1,16 +1,24 @@
 "use client";
 
-import { FormEvent, Suspense, useMemo, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/Button";
+import { Suspense, useActionState, useMemo } from "react";
+import { useFormStatus } from "react-dom";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/components/ui/Button";
+import { adminLogin, type LoginState } from "./actions";
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? "Signing in…" : "Sign in"}
+    </Button>
+  );
+}
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [state, formAction] = useActionState(adminLogin, {} as LoginState);
 
   const configError = useMemo(() => {
     const code = searchParams.get("error");
@@ -23,45 +31,7 @@ function LoginForm() {
     return "";
   }, [searchParams]);
 
-  async function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    const form = new FormData(e.currentTarget);
-    const email = String(form.get("email") || "").trim();
-    const password = String(form.get("password") || "");
-
-    // Password is sent only to Supabase Auth over HTTPS — never stored in this app.
-    const supabase = createClient();
-    if (!supabase) {
-      setError(
-        "Supabase is not configured. Add env vars on Vercel / .env.local, then create an admin user in Supabase Auth."
-      );
-      setLoading(false);
-      return;
-    }
-
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    // Clear password from form DOM after attempt
-    const passwordInput = e.currentTarget.elements.namedItem(
-      "password"
-    ) as HTMLInputElement | null;
-    if (passwordInput) passwordInput.value = "";
-
-    if (authError) {
-      setError("Invalid email or password.");
-      setLoading(false);
-      return;
-    }
-
-    router.push("/admin");
-    router.refresh();
-  }
+  const error = state.error || configError;
 
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center px-4">
@@ -75,11 +45,8 @@ function LoginForm() {
         <h1 className="mt-6 text-center font-semibold text-ink text-lg">
           Admin login
         </h1>
-        <p className="text-center text-sm text-muted mt-1">
-          Sign in with your Supabase admin account.
-        </p>
 
-        <form onSubmit={onSubmit} className="mt-8 space-y-4" autoComplete="on">
+        <form action={formAction} className="mt-8 space-y-4" autoComplete="on">
           <div>
             <label className="block text-sm font-medium mb-1.5" htmlFor="email">
               Email
@@ -110,19 +77,9 @@ function LoginForm() {
               className="w-full rounded-lg border border-border px-3 py-2.5 text-sm outline-none focus:border-maroon"
             />
           </div>
-          {(error || configError) && (
-            <p className="text-sm text-red-600">{error || configError}</p>
-          )}
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in…" : "Sign in"}
-          </Button>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <SubmitButton />
         </form>
-
-        <p className="mt-6 text-xs text-center text-muted leading-relaxed">
-          Passwords are verified by Supabase Auth and are never stored in this
-          codebase or environment files. Create the admin user in the Supabase
-          Dashboard → Authentication → Users.
-        </p>
       </div>
     </div>
   );
