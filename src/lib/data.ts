@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import {
   mockBanners,
   mockBlogPosts,
@@ -23,7 +23,7 @@ import type {
 } from "@/lib/types";
 
 export async function getBanners(): Promise<Banner[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   if (!supabase) return mockBanners.filter((b) => b.is_active);
 
   const { data, error } = await supabase
@@ -37,7 +37,7 @@ export async function getBanners(): Promise<Banner[]> {
 }
 
 export async function getReels(): Promise<Reel[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   if (!supabase) return mockReels.filter((r) => r.is_active);
 
   const { data, error } = await supabase
@@ -51,7 +51,7 @@ export async function getReels(): Promise<Reel[]> {
 }
 
 export async function getReviews(): Promise<Review[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   if (!supabase) return mockReviews.filter((r) => r.is_active);
 
   const { data, error } = await supabase
@@ -66,19 +66,27 @@ export async function getReviews(): Promise<Review[]> {
 }
 
 export async function getStats(): Promise<SiteStats> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   if (!supabase) return mockStats;
 
-  const { data, error } = await supabase.from("site_stats").select("*").limit(1).single();
+  const { data, error } = await supabase
+    .from("site_stats")
+    .select("*")
+    .limit(1)
+    .single();
   if (error || !data) return mockStats;
   return data as SiteStats;
 }
 
 export async function getSettings(): Promise<SiteSettings> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   if (!supabase) return mockSettings;
 
-  const { data, error } = await supabase.from("site_settings").select("*").limit(1).single();
+  const { data, error } = await supabase
+    .from("site_settings")
+    .select("*")
+    .limit(1)
+    .single();
   if (error || !data) return mockSettings;
   return data as SiteSettings;
 }
@@ -88,7 +96,7 @@ export async function getVenues(filters?: {
   budgetMax?: number;
   capacityMin?: number;
 }): Promise<Venue[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   let venues = mockVenues.filter((v) => v.is_active);
 
   if (supabase) {
@@ -121,7 +129,7 @@ export async function getVenueBySlug(slug: string): Promise<Venue | null> {
 }
 
 export async function getBlogPosts(): Promise<BlogPost[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   if (!supabase) return mockBlogPosts.filter((p) => p.status === "published");
 
   const { data, error } = await supabase
@@ -130,7 +138,9 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
     .eq("status", "published")
     .order("published_at", { ascending: false });
 
-  if (error || !data?.length) return mockBlogPosts.filter((p) => p.status === "published");
+  if (error || !data?.length) {
+    return mockBlogPosts.filter((p) => p.status === "published");
+  }
   return data as BlogPost[];
 }
 
@@ -140,7 +150,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
 }
 
 export async function getPortfolio(): Promise<PortfolioItem[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   if (!supabase) return mockPortfolio;
 
   const { data, error } = await supabase
@@ -152,13 +162,15 @@ export async function getPortfolio(): Promise<PortfolioItem[]> {
   return data as PortfolioItem[];
 }
 
-export async function getPortfolioBySlug(slug: string): Promise<PortfolioItem | null> {
+export async function getPortfolioBySlug(
+  slug: string
+): Promise<PortfolioItem | null> {
   const items = await getPortfolio();
   return items.find((p) => p.slug === slug) ?? null;
 }
 
 export async function getFaqs(): Promise<FaqItem[]> {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   if (!supabase) return mockFaqs;
 
   const { data, error } = await supabase
