@@ -366,6 +366,6 @@ select
   ]'::jsonb,
   '+91-7037401415',
   '+917037401415',
-  'enquiry@highlighcreations.com',
-  'Agra'
+  'contact.hcep@gmail.com',
+  'Panchwati Plaza, Kaveri Vihar Phase II, Shamsabad, Agra, Basai, Uttar Pradesh 282004'
 where not exists (select 1 from site_settings limit 1);

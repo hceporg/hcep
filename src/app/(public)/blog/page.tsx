@@ -1,11 +1,19 @@
 import Link from "next/link";
 import { getBlogPosts } from "@/lib/data";
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo/site";
 
-export const metadata: Metadata = {
-  title: "Blog",
-  description: "Wedding planning tips, venue guides, and stories from Highlight Creations.",
-};
+export const metadata: Metadata = buildMetadata({
+  title: "Destination Wedding Blog | Highlight Creations",
+  description:
+    "Guides on Rajasthan & Agra destination wedding costs, seasons, venues, and city comparisons from Highlight Creations.",
+  path: "/blog",
+  keywords: [
+    "destination wedding Rajasthan cost",
+    "best time wedding Udaipur Jaipur Agra",
+    "palace wedding venues Rajasthan",
+  ],
+});
 
 export default async function BlogPage() {
   const posts = await getBlogPosts();
@@ -14,9 +22,12 @@ export default async function BlogPage() {
     <div className="bg-cream min-h-screen">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="text-center mb-12">
-          <h1 className="font-serif text-4xl sm:text-5xl text-maroon">Blog</h1>
+          <h1 className="font-serif text-4xl sm:text-5xl text-maroon">
+            Destination Wedding Blog
+          </h1>
           <p className="mt-3 text-muted">
-            Ideas, guides, and inspiration for your big day.
+            Costs, seasons, city comparisons, and planning guides for Agra &amp;
+            Rajasthan celebrations.
           </p>
         </div>
 
@@ -32,7 +43,7 @@ export default async function BlogPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={post.cover_image}
-                    alt={post.title}
+                    alt={`${post.title} — Highlight Creations destination wedding guide`}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>

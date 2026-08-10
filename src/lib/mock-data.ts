@@ -24,16 +24,21 @@ export const mockSettings: SiteSettings = {
   venue_cta_text: "Check availability",
   phone: "+91-7037401415",
   whatsapp: "+917037401415",
-  email: "enquiry@highlighcreations.com",
-  address: "Agra",
+  email: "contact.hcep@gmail.com",
+  address:
+    "Panchwati Plaza, Kaveri Vihar Phase II, Shamsabad, Agra, Basai, Uttar Pradesh 282004",
   nav_items: [
     { label: "Wedding Venues", href: "/venues" },
-    { label: "Price Beat Challenge", href: "/price-beat-challenge" },
+    { label: "Packages", href: "/destination-wedding-packages" },
     {
       label: "More",
       href: "#",
       children: [
-        { label: "Our Work", href: "/portfolio" },
+        { label: "Agra weddings", href: "/agra-wedding-planner" },
+        { label: "Jaipur weddings", href: "/jaipur-wedding-planner" },
+        { label: "Udaipur weddings", href: "/udaipur-wedding-planner" },
+        { label: "Bharatpur weddings", href: "/bharatpur-wedding-planner" },
+        { label: "Real Weddings", href: "/real-weddings" },
         { label: "Services", href: "/services" },
         { label: "About Us", href: "/about" },
         { label: "Blog", href: "/blog" },
@@ -447,42 +452,55 @@ export const mockPortfolio: PortfolioItem[] = [
 export const mockBlogPosts: BlogPost[] = [
   {
     id: "bp1",
-    title: "10 Tips for Planning a Destination Wedding in India",
-    slug: "10-tips-destination-wedding-india",
+    title: "How Much Does a Destination Wedding in Rajasthan Cost in 2026?",
+    slug: "destination-wedding-rajasthan-cost-2026",
     cover_image:
       "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80",
     excerpt:
-      "From guest logistics to seasonal timing — everything you need for a seamless destination celebration.",
-    body: `## Start with your guest list\n\nDestination weddings work best when you know who is travelling with you.\n\n## Choose the right season\n\nWeather can make or break outdoor celebrations. Plan around monsoon and peak heat.\n\n## Book venues early\n\nPopular destinations like Goa and Udaipur fill up 12–18 months ahead.\n\n## Work with a local planner\n\nLocal expertise saves time, money, and stress — especially for décor and vendor coordination.`,
+      "A practical breakdown of venue, décor, hospitality, and season — and how to budget without guesswork.",
+    body: `## Start with guest count and function list\n\nCost follows guest count, number of events, and venue category more than city hype alone.\n\n## Venue and season\n\nPeak winter weekends in Jaipur and Udaipur book early and price higher. Agra and Bharatpur can offer strong heritage value depending on the property.\n\n## What to include in your budget\n\nPlanning fees, décor, catering, rooms, transport, entertainment, and contingency. Ask for itemized quotes.\n\n## Get a real number\n\nContact Highlight Creations with your dates and guest list for a tailored estimate across Agra, Jaipur, Udaipur, or Bharatpur.`,
     status: "published",
-    published_at: "2025-06-01T10:00:00Z",
-    created_at: "2025-05-20T10:00:00Z",
+    published_at: "2026-01-15T10:00:00Z",
+    created_at: "2026-01-10T10:00:00Z",
   },
   {
     id: "bp2",
-    title: "How Our Price Beat Challenge Works",
-    slug: "how-price-beat-challenge-works",
+    title: "Best Time of Year for a Wedding in Udaipur, Jaipur, and Agra",
+    slug: "best-time-wedding-udaipur-jaipur-agra",
     cover_image:
       "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&q=80",
     excerpt:
-      "Found a lower quote elsewhere? Here's how we match — and beat — competitive venue pricing.",
-    body: `## Bring us a valid quote\n\nShare a comparable written quote from another vendor for the same venue and package.\n\n## We verify & beat it\n\nOur partnerships let us negotiate better rates — and we pass the savings to you.\n\n## Same quality, better price\n\nNo corners cut. You get the venue and service level you want, for less.`,
+      "Season-by-season guidance for outdoor courtyards, lakeside evenings, and guest comfort.",
+    body: `## October to March\n\nThe most popular window for outdoor palace and lakeside celebrations.\n\n## Summer and monsoon\n\nWorkable with indoor-heavy design and weather backups.\n\n## Multi-city tip\n\nIf you combine Agra with Jaipur or Udaipur, align travel days with cooler evenings and guest energy.`,
     status: "published",
-    published_at: "2025-05-15T10:00:00Z",
-    created_at: "2025-05-10T10:00:00Z",
+    published_at: "2025-11-01T10:00:00Z",
+    created_at: "2025-10-20T10:00:00Z",
   },
   {
     id: "bp3",
-    title: "Choosing the Perfect Wedding Venue: A Checklist",
-    slug: "choosing-perfect-wedding-venue",
+    title: "Agra vs Jaipur vs Udaipur: Choosing Your Destination Wedding City",
+    slug: "agra-vs-jaipur-vs-udaipur-destination-wedding",
     cover_image:
       "https://images.unsplash.com/photo-1519167758481-83f150b4219d?w=800&q=80",
     excerpt:
-      "Capacity, budget, accessibility, and vibe — use this checklist before you book.",
-    body: `## Capacity & layout\n\nEnsure the space fits your guest count comfortably for both ceremony and reception.\n\n## Budget transparency\n\nAsk what's included: décor, catering minimums, taxes, and overtime fees.\n\n## Accessibility\n\nConsider parking, lodging nearby, and ease of travel for elderly guests.`,
+      "Compare access, venue styles, and guest experience — then pick the city that fits your celebration.",
+    body: `## Agra\n\nStrong access and heritage energy; ideal gateway to the Rajasthan corridor.\n\n## Jaipur\n\nPalace and fort variety with a deep vendor ecosystem for multi-day weddings.\n\n## Udaipur\n\nLakeside romance and palace silhouettes — plan transfers carefully.\n\n## Bharatpur\n\nA calmer heritage option that pairs well with Agra or Jaipur.`,
     status: "published",
-    published_at: "2025-04-20T10:00:00Z",
-    created_at: "2025-04-15T10:00:00Z",
+    published_at: "2025-09-10T10:00:00Z",
+    created_at: "2025-09-01T10:00:00Z",
+  },
+  {
+    id: "bp4",
+    title: "How Our Price Beat Challenge Works",
+    slug: "how-price-beat-challenge-works",
+    cover_image:
+      "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800&q=80",
+    excerpt:
+      "Found a lower quote elsewhere? Here's how we match — and beat — competitive venue pricing.",
+    body: `## Bring us a valid quote\n\nShare a comparable written quote from another vendor for the same venue and package.\n\n## We verify & beat it\n\nOur partnerships let us negotiate better rates — and we pass the savings to you.`,
+    status: "published",
+    published_at: "2025-05-15T10:00:00Z",
+    created_at: "2025-05-10T10:00:00Z",
   },
 ];
 
