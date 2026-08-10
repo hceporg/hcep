@@ -40,28 +40,6 @@ export default function AdminOverviewPage() {
           </Link>
         ))}
       </div>
-
-      <div className="mt-10 rounded-xl border border-border bg-white p-6">
-        <h2 className="font-semibold text-ink">Quick setup</h2>
-        <ol className="mt-3 space-y-2 text-sm text-muted list-decimal pl-5">
-          <li>
-            Copy <code className="text-maroon">.env.example</code> to{" "}
-            <code className="text-maroon">.env.local</code> and add Supabase
-            URL + anon key (+ <code className="text-maroon">CRON_SECRET</code>{" "}
-            on Vercel).
-          </li>
-          <li>
-            Run <code className="text-maroon">supabase/schema.sql</code> in the
-            Supabase SQL editor (creates DB tables + <code>media</code> Storage
-            bucket).
-          </li>
-          <li>Create an admin user in Supabase Auth (Dashboard → Authentication → Users) and sign in here. The password is stored only in Supabase (hashed), never in this repo.</li>
-          <li>
-            Upload banner videos/images and blog covers in Admin — all files go
-            to Supabase Storage (1 GB free quota).
-          </li>
-        </ol>
-      </div>
     </div>
   );
 }
