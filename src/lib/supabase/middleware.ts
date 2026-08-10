@@ -2,15 +2,24 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
-
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+  const isLogin = request.nextUrl.pathname.startsWith("/admin/login");
+  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin") && !isLogin;
+
+  // Without Supabase, block the dashboard entirely (no open/demo access)
   if (!url || !key) {
-    // Dev mode without Supabase: allow /admin except require a simple cookie check later
-    return supabaseResponse;
+    if (isAdminRoute) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/admin/login";
+      redirectUrl.searchParams.set("error", "config");
+      return NextResponse.redirect(redirectUrl);
+    }
+    return NextResponse.next({ request });
   }
+
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(url, key, {
     cookies: {
@@ -33,19 +42,16 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAdminRoute =
-    request.nextUrl.pathname.startsWith("/admin") &&
-    !request.nextUrl.pathname.startsWith("/admin/login");
-
   if (isAdminRoute && !user) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/admin/login";
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (request.nextUrl.pathname === "/admin/login" && user) {
+  if (isLogin && user) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/admin";
+    redirectUrl.search = "";
     return NextResponse.redirect(redirectUrl);
   }
 

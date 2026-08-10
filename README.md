@@ -29,7 +29,8 @@ npm run dev
 
 1. Create a Supabase project.
 2. Run `supabase/schema.sql` in the SQL editor (tables + `media` bucket + RLS).
-3. Auth → create an admin user → sign in at `/admin/login`.
+3. Auth → create an admin user (email + password) → sign in at `/admin/login`.
+   The password is stored **only** in Supabase Auth (hashed). Do not put passwords in `.env` or the repo.
 4. Deploy to Vercel; add the same env vars plus `CRON_SECRET`.
 
 ### Keep-alive (avoid 7-day pause)

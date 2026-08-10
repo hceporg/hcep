@@ -55,7 +55,7 @@ export default function AdminOverviewPage() {
             Supabase SQL editor (creates DB tables + <code>media</code> Storage
             bucket).
           </li>
-          <li>Create an admin user in Supabase Auth and sign in here.</li>
+          <li>Create an admin user in Supabase Auth (Dashboard → Authentication → Users) and sign in here. The password is stored only in Supabase (hashed), never in this repo.</li>
           <li>
             Upload banner videos/images and blog covers in Admin — all files go
             to Supabase Storage (1 GB free quota).

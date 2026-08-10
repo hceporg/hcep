@@ -8,7 +8,7 @@ export default async function AdminDashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, demo } = await requireAdmin();
+  const { user } = await requireAdmin();
 
   return (
     <div className="min-h-screen bg-[#f5f2ed] flex">
@@ -18,11 +18,6 @@ export default async function AdminDashboardLayout({
             Admin
           </Link>
           <p className="text-xs text-muted mt-1 truncate">{user.email}</p>
-          {demo && (
-            <p className="text-[10px] mt-1 text-amber-700 bg-amber-50 rounded px-1.5 py-0.5 inline-block">
-              Demo mode — configure Supabase
-            </p>
-          )}
         </div>
         <AdminNav />
         <div className="mt-auto p-4 border-t border-border space-y-2">
