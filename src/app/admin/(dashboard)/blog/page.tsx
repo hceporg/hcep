@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { mockBlogPosts } from "@/lib/mock-data";
 import type { BlogPost } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { BlogImageUpload } from "@/components/admin/BlogImageUpload";
 import { slugify } from "@/lib/utils";
+import { useSupabaseTable } from "@/lib/supabase/admin-hooks";
 
 export default function AdminBlogPage() {
-  const [posts, setPosts] = useState<BlogPost[]>(mockBlogPosts);
+  const { rows: posts, loading, error, upsert, remove } =
+    useSupabaseTable<BlogPost>({ table: "blog_posts", orderBy: "created_at", ascending: false });
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<BlogPost | null>(null);
   const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   function openNew() {
     setEditing(null);
@@ -31,11 +33,11 @@ export default function AdminBlogPage() {
     setCoverImage(null);
   }
 
-  function save(form: FormData) {
+  async function save(form: FormData) {
+    setSaving(true);
     const title = String(form.get("title"));
     const status = form.get("status") as "draft" | "published";
-    const payload: BlogPost = {
-      id: editing?.id ?? `bp${Date.now()}`,
+    const payload: Partial<BlogPost> = {
       title,
       slug: String(form.get("slug") || slugify(title)),
       cover_image: coverImage,
@@ -46,14 +48,14 @@ export default function AdminBlogPage() {
         status === "published"
           ? editing?.published_at ?? new Date().toISOString()
           : null,
-      created_at: editing?.created_at ?? new Date().toISOString(),
     };
-    setPosts((prev) => {
-      if (prev.find((p) => p.id === payload.id)) {
-        return prev.map((p) => (p.id === payload.id ? payload : p));
-      }
-      return [payload, ...prev];
-    });
+    if (editing) payload.id = editing.id;
+    const result = await upsert(payload);
+    setSaving(false);
+    if (result.error) {
+      alert("Save failed: " + result.error);
+      return;
+    }
     closeForm();
   }
 
@@ -69,6 +71,11 @@ export default function AdminBlogPage() {
         </div>
         <Button onClick={openNew}>New post</Button>
       </div>
+
+      {error && (
+        <p className="mt-4 text-sm text-red-600 bg-red-50 rounded-lg p-3">{error}</p>
+      )}
+      {loading && <p className="mt-6 text-sm text-muted">Loading…</p>}
 
       {showForm && (
         <form
@@ -116,7 +123,9 @@ export default function AdminBlogPage() {
             </select>
           </label>
           <div className="flex gap-2">
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving…" : "Save"}
+            </Button>
             <Button type="button" variant="ghost" onClick={closeForm}>
               Cancel
             </Button>
@@ -155,9 +164,9 @@ export default function AdminBlogPage() {
               <Button
                 variant="ghost"
                 className="!px-3 !py-1.5 text-xs"
-                onClick={() =>
-                  setPosts((prev) => prev.filter((x) => x.id !== p.id))
-                }
+                onClick={() => {
+                  if (confirm("Delete this post?")) remove(p.id);
+                }}
               >
                 Delete
               </Button>

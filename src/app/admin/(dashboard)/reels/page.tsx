@@ -1,47 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { mockReels } from "@/lib/mock-data";
 import type { Reel } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
+import { useSupabaseTable } from "@/lib/supabase/admin-hooks";
 
 export default function AdminReelsPage() {
-  const [reels, setReels] = useState<Reel[]>(mockReels);
+  const { rows: reels, loading, error, upsert, remove } =
+    useSupabaseTable<Reel>({ table: "reels" });
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Reel | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  function save(form: FormData) {
-    const payload: Reel = {
-      id: editing?.id ?? `r${Date.now()}`,
+  async function save(form: FormData) {
+    setSaving(true);
+    const payload: Partial<Reel> = {
       instagram_url: String(form.get("instagram_url")),
       couple_name: String(form.get("couple_name")),
-      location: String(form.get("location")),
+      location: String(form.get("location") || ""),
       view_count: Number(form.get("view_count") || 0),
-      thumbnail_url: String(form.get("thumbnail_url") || "") || null,
       sort_order: Number(form.get("sort_order") || 0),
       is_active: form.get("is_active") === "on",
+      thumbnail_url: null,
     };
-    setReels((prev) => {
-      if (prev.find((r) => r.id === payload.id)) {
-        return prev.map((r) => (r.id === payload.id ? payload : r));
-      }
-      return [...prev, payload];
-    });
+    if (editing) payload.id = editing.id;
+    const result = await upsert(payload);
+    setSaving(false);
+    if (result.error) {
+      alert("Save failed: " + result.error);
+      return;
+    }
     setShowForm(false);
     setEditing(null);
-  }
-
-  function move(id: string, dir: -1 | 1) {
-    setReels((prev) => {
-      const sorted = [...prev].sort((a, b) => a.sort_order - b.sort_order);
-      const idx = sorted.findIndex((r) => r.id === id);
-      const swap = idx + dir;
-      if (swap < 0 || swap >= sorted.length) return prev;
-      const a = sorted[idx].sort_order;
-      sorted[idx] = { ...sorted[idx], sort_order: sorted[swap].sort_order };
-      sorted[swap] = { ...sorted[swap], sort_order: a };
-      return sorted;
-    });
   }
 
   return (
@@ -62,6 +52,14 @@ export default function AdminReelsPage() {
           Add reel
         </Button>
       </div>
+
+      {error && (
+        <p className="mt-4 text-sm text-red-600 bg-red-50 rounded-lg p-3">
+          {error}
+        </p>
+      )}
+
+      {loading && <p className="mt-6 text-sm text-muted">Loading…</p>}
 
       {(showForm || editing) && (
         <form
@@ -91,7 +89,7 @@ export default function AdminReelsPage() {
               defaultValue={editing?.location}
             />
           </div>
-          <div className="grid sm:grid-cols-3 gap-3">
+          <div className="grid sm:grid-cols-2 gap-3">
             <Field
               name="view_count"
               label="View count"
@@ -104,11 +102,6 @@ export default function AdminReelsPage() {
               type="number"
               defaultValue={String(editing?.sort_order ?? reels.length)}
             />
-            <Field
-              name="thumbnail_url"
-              label="Thumbnail URL"
-              defaultValue={editing?.thumbnail_url ?? ""}
-            />
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -119,7 +112,9 @@ export default function AdminReelsPage() {
             Active
           </label>
           <div className="flex gap-2">
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving…" : "Save"}
+            </Button>
             <Button
               type="button"
               variant="ghost"
@@ -143,14 +138,6 @@ export default function AdminReelsPage() {
               key={r.id}
               className="flex flex-col sm:flex-row gap-4 rounded-xl border border-border bg-white p-4 items-start sm:items-center"
             >
-              {r.thumbnail_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={r.thumbnail_url}
-                  alt={r.couple_name}
-                  className="w-16 h-24 object-cover rounded-lg"
-                />
-              )}
               <div className="flex-1 min-w-0">
                 <p className="font-medium">{r.couple_name}</p>
                 <p className="text-xs text-muted truncate">{r.instagram_url}</p>
@@ -160,20 +147,6 @@ export default function AdminReelsPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="ghost"
-                  className="!px-2 !py-1 text-xs"
-                  onClick={() => move(r.id, -1)}
-                >
-                  ↑
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="!px-2 !py-1 text-xs"
-                  onClick={() => move(r.id, 1)}
-                >
-                  ↓
-                </Button>
                 <Button
                   variant="outline"
                   className="!px-3 !py-1.5 text-xs"
@@ -187,9 +160,9 @@ export default function AdminReelsPage() {
                 <Button
                   variant="ghost"
                   className="!px-3 !py-1.5 text-xs"
-                  onClick={() =>
-                    setReels((prev) => prev.filter((x) => x.id !== r.id))
-                  }
+                  onClick={() => {
+                    if (confirm("Delete this reel?")) remove(r.id);
+                  }}
                 >
                   Delete
                 </Button>

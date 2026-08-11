@@ -1,25 +1,35 @@
+"use client";
+
 import Link from "next/link";
-import {
-  mockBanners,
-  mockBlogPosts,
-  mockReels,
-  mockReviews,
-  mockVenues,
-} from "@/lib/mock-data";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+type Card = { label: string; count: number | string; href: string };
 
 export default function AdminOverviewPage() {
-  const cards = [
-    { label: "Banners", count: mockBanners.length, href: "/admin/banners" },
-    { label: "Reels", count: mockReels.length, href: "/admin/reels" },
-    { label: "Reviews", count: mockReviews.length, href: "/admin/reviews" },
-    { label: "Venues", count: mockVenues.length, href: "/admin/venues" },
-    {
-      label: "Blog posts",
-      count: mockBlogPosts.length,
-      href: "/admin/blog",
-    },
-    { label: "Enquiries", count: "—", href: "/admin/enquiries" },
-  ];
+  const [cards, setCards] = useState<Card[]>([
+    { label: "Banners", count: "…", href: "/admin/banners" },
+    { label: "Reels", count: "…", href: "/admin/reels" },
+    { label: "Reviews", count: "…", href: "/admin/reviews" },
+    { label: "Venues", count: "…", href: "/admin/venues" },
+    { label: "Blog posts", count: "…", href: "/admin/blog" },
+    { label: "Enquiries", count: "…", href: "/admin/enquiries" },
+  ]);
+
+  useEffect(() => {
+    async function load() {
+      const sb = createClient();
+      if (!sb) return;
+      const tables = ["banners", "reels", "reviews", "venues", "blog_posts", "enquiries"];
+      const counts = await Promise.all(
+        tables.map((t) => sb.from(t).select("id", { count: "exact", head: true }))
+      );
+      setCards((prev) =>
+        prev.map((c, i) => ({ ...c, count: counts[i].count ?? 0 }))
+      );
+    }
+    load();
+  }, []);
 
   return (
     <div>

@@ -10,6 +10,12 @@ type Props = {
   settings: SiteSettings;
 };
 
+function getInstagramThumbnail(url: string): string | null {
+  const match = url.match(/\/reel\/([A-Za-z0-9_-]+)/);
+  if (!match) return null;
+  return `https://www.instagram.com/p/${match[1]}/media/?size=l`;
+}
+
 export function ReelsSection({ reels, settings }: Props) {
   return (
     <section
@@ -31,47 +37,50 @@ export function ReelsSection({ reels, settings }: Props) {
           delay={120}
           className="flex gap-4 sm:gap-5 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory reveal-stagger"
         >
-          {reels.map((reel) => (
-            <a
-              key={reel.id}
-              href={reel.instagram_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group relative shrink-0 w-[160px] sm:w-[180px] lg:w-[200px] aspect-[9/16] rounded-2xl overflow-hidden snap-start bg-cream-dark shadow-sm"
-            >
-              {reel.thumbnail_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={reel.thumbnail_url}
-                  alt={reel.couple_name}
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-maroon/40 to-maroon" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
-
-              <div className="absolute top-3 left-3 flex items-center gap-1 rounded-md bg-black/45 backdrop-blur-sm px-2 py-0.5 text-[11px] text-white">
-                <Eye className="size-3" />
-                {reel.view_count}
-              </div>
-
-              <div className="absolute top-3 right-3 rounded-full bg-black/40 p-1.5 text-white">
-                <Play className="size-3.5 fill-white" />
-              </div>
-
-              <div className="absolute inset-x-0 bottom-0 p-4 text-center">
-                <p className="font-serif text-white text-base sm:text-lg leading-tight">
-                  {reel.couple_name}
-                </p>
-                {reel.location && (
-                  <span className="inline-block mt-2 rounded bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink">
-                    {reel.location}
-                  </span>
+          {reels.map((reel) => {
+            const thumb = getInstagramThumbnail(reel.instagram_url);
+            return (
+              <a
+                key={reel.id}
+                href={reel.instagram_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative shrink-0 w-[160px] sm:w-[180px] lg:w-[200px] aspect-[9/16] rounded-2xl overflow-hidden snap-start bg-cream-dark shadow-sm"
+              >
+                {thumb ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={thumb}
+                    alt={reel.couple_name}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-maroon/40 to-maroon" />
                 )}
-              </div>
-            </a>
-          ))}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
+
+                <div className="absolute top-3 left-3 flex items-center gap-1 rounded-md bg-black/45 backdrop-blur-sm px-2 py-0.5 text-[11px] text-white">
+                  <Eye className="size-3" />
+                  {reel.view_count}
+                </div>
+
+                <div className="absolute top-3 right-3 rounded-full bg-black/40 p-1.5 text-white">
+                  <Play className="size-3.5 fill-white" />
+                </div>
+
+                <div className="absolute inset-x-0 bottom-0 p-4 text-center">
+                  <p className="font-serif text-white text-base sm:text-lg leading-tight">
+                    {reel.couple_name}
+                  </p>
+                  {reel.location && (
+                    <span className="inline-block mt-2 rounded bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-ink">
+                      {reel.location}
+                    </span>
+                  )}
+                </div>
+              </a>
+            );
+          })}
         </Reveal>
 
         <Reveal variant="arise" delay={200} className="mt-10 flex justify-center">

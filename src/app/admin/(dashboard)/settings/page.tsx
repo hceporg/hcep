@@ -1,12 +1,53 @@
 "use client";
 
-import { useState } from "react";
-import { mockSettings } from "@/lib/mock-data";
+import { useCallback, useEffect, useState } from "react";
+import type { SiteSettings } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
+import { createClient } from "@/lib/supabase/client";
 
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState(mockSettings);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const load = useCallback(async () => {
+    const sb = createClient();
+    if (!sb) return;
+    const { data } = await sb.from("site_settings").select("*").limit(1).single();
+    if (data) setSettings(data as SiteSettings);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function save(form: FormData) {
+    if (!settings) return;
+    setSaving(true);
+    const sb = createClient();
+    if (!sb) return;
+    const payload = {
+      site_name: String(form.get("site_name")),
+      cta_text: String(form.get("cta_text")),
+      venue_cta_text: String(form.get("venue_cta_text")),
+      phone: String(form.get("phone")),
+      whatsapp: String(form.get("whatsapp")),
+      email: String(form.get("email")),
+      address: String(form.get("address")),
+    };
+    const { error } = await sb.from("site_settings").update(payload).eq("id", settings.id);
+    setSaving(false);
+    if (error) {
+      alert("Save failed: " + error.message);
+      return;
+    }
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+    load();
+  }
+
+  if (loading) return <p className="text-sm text-muted">Loading…</p>;
+  if (!settings) return <p className="text-sm text-red-600">No settings found. Run schema.sql seed first.</p>;
 
   return (
     <div>
@@ -19,19 +60,7 @@ export default function AdminSettingsPage() {
         className="mt-8 max-w-xl space-y-4 rounded-xl border border-border bg-white p-6"
         onSubmit={(e) => {
           e.preventDefault();
-          const form = new FormData(e.currentTarget);
-          setSettings({
-            ...settings,
-            site_name: String(form.get("site_name")),
-            cta_text: String(form.get("cta_text")),
-            venue_cta_text: String(form.get("venue_cta_text")),
-            phone: String(form.get("phone")),
-            whatsapp: String(form.get("whatsapp")),
-            email: String(form.get("email")),
-            address: String(form.get("address")),
-          });
-          setSaved(true);
-          setTimeout(() => setSaved(false), 2000);
+          save(new FormData(e.currentTarget));
         }}
       >
         {(
@@ -73,13 +102,12 @@ export default function AdminSettingsPage() {
               </li>
             ))}
           </ul>
-          <p className="text-xs text-muted mt-2">
-            Edit nav_items JSON in Supabase site_settings when connected.
-          </p>
         </div>
 
-        <Button type="submit">Save settings</Button>
-        {saved && <p className="text-sm text-green-700">Saved (demo / in-memory).</p>}
+        <Button type="submit" disabled={saving}>
+          {saving ? "Saving…" : "Save settings"}
+        </Button>
+        {saved && <p className="text-sm text-green-700">Saved!</p>}
       </form>
     </div>
   );

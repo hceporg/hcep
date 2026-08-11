@@ -1,22 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { mockReviews } from "@/lib/mock-data";
 import type { Review } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { avatarColors } from "@/lib/utils";
+import { useSupabaseTable } from "@/lib/supabase/admin-hooks";
 
 export default function AdminReviewsPage() {
-  const [reviews, setReviews] = useState<Review[]>(mockReviews);
+  const { rows: reviews, loading, error, upsert, remove } =
+    useSupabaseTable<Review>({ table: "reviews" });
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Review | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  function save(form: FormData) {
-    const payload: Review = {
-      id: editing?.id ?? `rv${Date.now()}`,
+  async function save(form: FormData) {
+    setSaving(true);
+    const payload: Partial<Review> = {
       reviewer_name: String(form.get("reviewer_name")),
-      handle: String(form.get("handle")),
-      timeframe: String(form.get("timeframe")),
+      handle: String(form.get("handle") || ""),
+      timeframe: String(form.get("timeframe") || ""),
       rating: Number(form.get("rating") || 5),
       review_text: String(form.get("review_text")),
       avatar_color: String(form.get("avatar_color") || avatarColors()[0]),
@@ -25,12 +27,13 @@ export default function AdminReviewsPage() {
       is_featured: form.get("is_featured") === "on",
       is_active: form.get("is_active") === "on",
     };
-    setReviews((prev) => {
-      if (prev.find((r) => r.id === payload.id)) {
-        return prev.map((r) => (r.id === payload.id ? payload : r));
-      }
-      return [...prev, payload];
-    });
+    if (editing) payload.id = editing.id;
+    const result = await upsert(payload);
+    setSaving(false);
+    if (result.error) {
+      alert("Save failed: " + result.error);
+      return;
+    }
     setShowForm(false);
     setEditing(null);
   }
@@ -53,6 +56,13 @@ export default function AdminReviewsPage() {
           Add review
         </Button>
       </div>
+
+      {error && (
+        <p className="mt-4 text-sm text-red-600 bg-red-50 rounded-lg p-3">
+          {error}
+        </p>
+      )}
+      {loading && <p className="mt-6 text-sm text-muted">Loading…</p>}
 
       {(showForm || editing) && (
         <form
@@ -139,7 +149,9 @@ export default function AdminReviewsPage() {
             </label>
           </div>
           <div className="flex gap-2">
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving…" : "Save"}
+            </Button>
             <Button
               type="button"
               variant="ghost"
@@ -191,9 +203,9 @@ export default function AdminReviewsPage() {
               <Button
                 variant="ghost"
                 className="!px-3 !py-1.5 text-xs"
-                onClick={() =>
-                  setReviews((prev) => prev.filter((x) => x.id !== r.id))
-                }
+                onClick={() => {
+                  if (confirm("Delete this review?")) remove(r.id);
+                }}
               >
                 Delete
               </Button>

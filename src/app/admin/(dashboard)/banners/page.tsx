@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { mockBanners } from "@/lib/mock-data";
 import type { Banner } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { BannerMediaUpload } from "@/components/admin/BannerMediaUpload";
+import { useSupabaseTable } from "@/lib/supabase/admin-hooks";
 
 export default function AdminBannersPage() {
-  const [banners, setBanners] = useState<Banner[]>(mockBanners);
+  const { rows: banners, loading, error, upsert, remove } =
+    useSupabaseTable<Banner>({ table: "banners" });
   const [editing, setEditing] = useState<Banner | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
+  const [saving, setSaving] = useState(false);
 
   function openNew() {
     setEditing(null);
@@ -34,25 +36,27 @@ export default function AdminBannersPage() {
     setMediaType("image");
   }
 
-  function saveBanner(form: FormData) {
+  async function saveBanner(form: FormData) {
     if (!mediaUrl) return;
+    setSaving(true);
 
-    const payload: Banner = {
-      id: editing?.id ?? `b${Date.now()}`,
+    const payload: Partial<Banner> = {
       media_url: mediaUrl,
       media_type: mediaType,
       couple_name: String(form.get("couple_name")),
-      location: String(form.get("location")),
-      date_label: String(form.get("date_label")),
+      location: String(form.get("location") || ""),
+      date_label: String(form.get("date_label") || ""),
       sort_order: Number(form.get("sort_order") || 0),
       is_active: form.get("is_active") === "on",
     };
+    if (editing) payload.id = editing.id;
 
-    setBanners((prev) => {
-      const exists = prev.find((b) => b.id === payload.id);
-      if (exists) return prev.map((b) => (b.id === payload.id ? payload : b));
-      return [...prev, payload];
-    });
+    const result = await upsert(payload);
+    setSaving(false);
+    if (result.error) {
+      alert("Save failed: " + result.error);
+      return;
+    }
     closeForm();
   }
 
@@ -62,12 +66,18 @@ export default function AdminBannersPage() {
         <div>
           <h1 className="font-serif text-3xl text-maroon">Banner Manager</h1>
           <p className="text-sm text-muted mt-1">
-            Hero carousel videos/images stored in Supabase Storage (shared 1 GB
-            quota).
+            Hero carousel videos/images stored in Supabase Storage.
           </p>
         </div>
         <Button onClick={openNew}>Add banner</Button>
       </div>
+
+      {error && (
+        <p className="mt-4 text-sm text-red-600 bg-red-50 rounded-lg p-3">
+          {error}
+        </p>
+      )}
+      {loading && <p className="mt-6 text-sm text-muted">Loading…</p>}
 
       {showForm && (
         <form
@@ -133,11 +143,13 @@ export default function AdminBannersPage() {
             Active
           </label>
           {!mediaUrl && (
-            <p className="text-xs text-red-600">Upload a banner image or video to continue.</p>
+            <p className="text-xs text-red-600">
+              Upload a banner image or video to continue.
+            </p>
           )}
           <div className="flex gap-2">
-            <Button type="submit" disabled={!mediaUrl}>
-              Save
+            <Button type="submit" disabled={!mediaUrl || saving}>
+              {saving ? "Saving…" : "Save"}
             </Button>
             <Button type="button" variant="ghost" onClick={closeForm}>
               Cancel
@@ -189,9 +201,9 @@ export default function AdminBannersPage() {
                 <Button
                   variant="ghost"
                   className="!px-3 !py-1.5 text-xs"
-                  onClick={() =>
-                    setBanners((prev) => prev.filter((x) => x.id !== b.id))
-                  }
+                  onClick={() => {
+                    if (confirm("Delete this banner?")) remove(b.id);
+                  }}
                 >
                   Delete
                 </Button>

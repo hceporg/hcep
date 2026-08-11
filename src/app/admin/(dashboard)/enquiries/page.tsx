@@ -1,51 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { Enquiry } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
-
-const DEMO_ENQUIRIES: Enquiry[] = [
-  {
-    id: "e1",
-    name: "Ananya Sharma",
-    email: "ananya@example.com",
-    phone: "+91 98765 11111",
-    wedding_date: "2026-12-15",
-    city: "Goa",
-    budget: "30–40 lakhs",
-    message: "Looking for a beach venue for 150 guests.",
-    source: "hero",
-    venue_id: null,
-    status: "new",
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "e2",
-    name: "Rohan Mehta",
-    email: "rohan@example.com",
-    phone: "+91 98765 22222",
-    wedding_date: "2027-02-20",
-    city: "Udaipur",
-    budget: "50+ lakhs",
-    message: null,
-    source: "venue-cta",
-    venue_id: null,
-    status: "contacted",
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
+import { useSupabaseTable } from "@/lib/supabase/admin-hooks";
+import { createClient } from "@/lib/supabase/client";
 
 export default function AdminEnquiriesPage() {
-  const [enquiries, setEnquiries] = useState<Enquiry[]>(DEMO_ENQUIRIES);
+  const { rows: enquiries, loading, error, reload } =
+    useSupabaseTable<Enquiry>({ table: "enquiries", orderBy: "created_at", ascending: false });
 
-  useEffect(() => {
-    // When Supabase is wired, fetch from API
-  }, []);
-
-  function setStatus(id: string, status: Enquiry["status"]) {
-    setEnquiries((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, status } : e))
-    );
+  async function setStatus(id: string, status: Enquiry["status"]) {
+    const sb = createClient();
+    if (!sb) return;
+    await sb.from("enquiries").update({ status }).eq("id", id);
+    reload();
   }
 
   return (
@@ -55,7 +23,15 @@ export default function AdminEnquiriesPage() {
         Leads from &quot;Start my wedding planning&quot; and availability forms.
       </p>
 
+      {error && (
+        <p className="mt-4 text-sm text-red-600 bg-red-50 rounded-lg p-3">{error}</p>
+      )}
+      {loading && <p className="mt-6 text-sm text-muted">Loading…</p>}
+
       <div className="mt-6 space-y-3">
+        {enquiries.length === 0 && !loading && (
+          <p className="text-sm text-muted">No enquiries yet.</p>
+        )}
         {enquiries.map((e) => (
           <div
             key={e.id}

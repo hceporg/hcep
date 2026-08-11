@@ -1,36 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { mockPortfolio } from "@/lib/mock-data";
 import type { PortfolioItem } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { slugify } from "@/lib/utils";
+import { useSupabaseTable } from "@/lib/supabase/admin-hooks";
 
 export default function AdminPortfolioPage() {
-  const [items, setItems] = useState<PortfolioItem[]>(mockPortfolio);
+  const { rows: items, loading, error, upsert, remove } =
+    useSupabaseTable<PortfolioItem>({ table: "portfolio", orderBy: "created_at", ascending: false });
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<PortfolioItem | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  function save(form: FormData) {
+  async function save(form: FormData) {
+    setSaving(true);
     const title = String(form.get("title"));
-    const payload: PortfolioItem = {
-      id: editing?.id ?? `p${Date.now()}`,
+    const payload: Partial<PortfolioItem> = {
       title,
       slug: String(form.get("slug") || slugify(title)),
       couple_name: String(form.get("couple_name")),
-      location: String(form.get("location")),
-      date_label: String(form.get("date_label")),
+      location: String(form.get("location") || ""),
+      date_label: String(form.get("date_label") || ""),
       cover_image: String(form.get("cover_image")),
       gallery: editing?.gallery ?? [],
-      description: String(form.get("description")),
+      description: String(form.get("description") || ""),
       is_featured: form.get("is_featured") === "on",
     };
-    setItems((prev) => {
-      if (prev.find((p) => p.id === payload.id)) {
-        return prev.map((p) => (p.id === payload.id ? payload : p));
-      }
-      return [payload, ...prev];
-    });
+    if (editing) payload.id = editing.id;
+    const result = await upsert(payload);
+    setSaving(false);
+    if (result.error) {
+      alert("Save failed: " + result.error);
+      return;
+    }
     setShowForm(false);
     setEditing(null);
   }
@@ -54,6 +57,11 @@ export default function AdminPortfolioPage() {
         </Button>
       </div>
 
+      {error && (
+        <p className="mt-4 text-sm text-red-600 bg-red-50 rounded-lg p-3">{error}</p>
+      )}
+      {loading && <p className="mt-6 text-sm text-muted">Loading…</p>}
+
       {(showForm || editing) && (
         <form
           className="mt-6 rounded-xl border border-border bg-white p-5 space-y-3"
@@ -73,11 +81,7 @@ export default function AdminPortfolioPage() {
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
             <Field name="location" label="Location" defaultValue={editing?.location} />
-            <Field
-              name="date_label"
-              label="Date"
-              defaultValue={editing?.date_label}
-            />
+            <Field name="date_label" label="Date" defaultValue={editing?.date_label} />
             <Field name="slug" label="Slug" defaultValue={editing?.slug} />
           </div>
           <Field
@@ -104,7 +108,9 @@ export default function AdminPortfolioPage() {
             Featured on homepage
           </label>
           <div className="flex gap-2">
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving…" : "Save"}
+            </Button>
             <Button
               type="button"
               variant="ghost"
@@ -152,9 +158,9 @@ export default function AdminPortfolioPage() {
                 <Button
                   variant="ghost"
                   className="!px-2 !py-1 text-xs"
-                  onClick={() =>
-                    setItems((prev) => prev.filter((x) => x.id !== item.id))
-                  }
+                  onClick={() => {
+                    if (confirm("Delete?")) remove(item.id);
+                  }}
                 >
                   Del
                 </Button>

@@ -4,6 +4,9 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { ReelsSection } from "@/components/home/ReelsSection";
 import { ReviewsSection } from "@/components/home/ReviewsSection";
 import { VenueCtaSection } from "@/components/home/VenueCtaSection";
+import { HowItWorksSection } from "@/components/home/HowItWorksSection";
+import { LocationSection } from "@/components/home/LocationSection";
+import { WhyBetterSection } from "@/components/home/WhyBetterSection";
 import {
   getBanners,
   getReels,
@@ -39,6 +42,9 @@ export default async function HomePage() {
       <HeroSection banners={banners} stats={stats} settings={settings} />
       <ReelsSection reels={reels} settings={settings} />
       <ReviewsSection reviews={reviews} settings={settings} />
+      <HowItWorksSection settings={settings} />
+      <LocationSection settings={settings} />
+      <WhyBetterSection settings={settings} />
       <VenueCtaSection settings={settings} />
 
       <section className="bg-cream border-t border-border py-14 sm:py-16">

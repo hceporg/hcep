@@ -1,24 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { mockVenues } from "@/lib/mock-data";
 import type { Venue } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { formatCurrency, slugify } from "@/lib/utils";
+import { useSupabaseTable } from "@/lib/supabase/admin-hooks";
 
 export default function AdminVenuesPage() {
-  const [venues, setVenues] = useState<Venue[]>(mockVenues);
+  const { rows: venues, loading, error, upsert, remove } =
+    useSupabaseTable<Venue>({ table: "venues", orderBy: "name" });
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Venue | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  function save(form: FormData) {
+  async function save(form: FormData) {
+    setSaving(true);
     const name = String(form.get("name"));
-    const payload: Venue = {
-      id: editing?.id ?? `v${Date.now()}`,
+    const payload: Partial<Venue> = {
       name,
       slug: String(form.get("slug") || slugify(name)),
       city: String(form.get("city")),
-      state: String(form.get("state")),
+      state: String(form.get("state") || ""),
       cover_image: String(form.get("cover_image")),
       gallery: editing?.gallery ?? [String(form.get("cover_image"))],
       capacity_min: Number(form.get("capacity_min") || 50),
@@ -29,16 +31,17 @@ export default function AdminVenuesPage() {
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
-      description: String(form.get("description")),
+      description: String(form.get("description") || ""),
       is_featured: form.get("is_featured") === "on",
       is_active: form.get("is_active") === "on",
     };
-    setVenues((prev) => {
-      if (prev.find((v) => v.id === payload.id)) {
-        return prev.map((v) => (v.id === payload.id ? payload : v));
-      }
-      return [...prev, payload];
-    });
+    if (editing) payload.id = editing.id;
+    const result = await upsert(payload);
+    setSaving(false);
+    if (result.error) {
+      alert("Save failed: " + result.error);
+      return;
+    }
     setShowForm(false);
     setEditing(null);
   }
@@ -61,6 +64,13 @@ export default function AdminVenuesPage() {
           Add venue
         </Button>
       </div>
+
+      {error && (
+        <p className="mt-4 text-sm text-red-600 bg-red-50 rounded-lg p-3">
+          {error}
+        </p>
+      )}
+      {loading && <p className="mt-6 text-sm text-muted">Loading…</p>}
 
       {(showForm || editing) && (
         <form
@@ -148,7 +158,9 @@ export default function AdminVenuesPage() {
             </label>
           </div>
           <div className="flex gap-2">
-            <Button type="submit">Save</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving…" : "Save"}
+            </Button>
             <Button
               type="button"
               variant="ghost"
@@ -196,9 +208,9 @@ export default function AdminVenuesPage() {
               <Button
                 variant="ghost"
                 className="!px-3 !py-1.5 text-xs"
-                onClick={() =>
-                  setVenues((prev) => prev.filter((x) => x.id !== v.id))
-                }
+                onClick={() => {
+                  if (confirm("Delete this venue?")) remove(v.id);
+                }}
               >
                 Delete
               </Button>
