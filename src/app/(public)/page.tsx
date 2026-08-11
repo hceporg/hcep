@@ -50,7 +50,7 @@ export default async function HomePage() {
       <section className="bg-cream border-t border-border py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 className="font-serif text-2xl sm:text-3xl text-maroon text-center">
-            Destination wedding planning across Agra &amp; Rajasthan
+            Destination wedding planning across Agra, Goa &amp; Rajasthan
           </h2>
           <p className="mt-3 text-center text-muted text-sm max-w-2xl mx-auto">
             Explore dedicated planning guides for each city we serve — unique
@@ -59,6 +59,10 @@ export default async function HomePage() {
           <ul className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
             {[
               { href: "/agra-wedding-planner", label: "Wedding planner in Agra" },
+              {
+                href: "/goa-wedding-planner",
+                label: "Wedding planner in Goa",
+              },
               {
                 href: "/jaipur-wedding-planner",
                 label: "Destination wedding planner Jaipur",

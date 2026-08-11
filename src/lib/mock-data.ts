@@ -12,9 +12,9 @@ import type {
 
 export const mockStats: SiteStats = {
   id: "1",
-  weddings_done: "1,043+",
-  google_rating: "4.8/5",
-  venue_partners: "28,363+",
+  weddings_done: "1112+",
+  google_rating: "4.7/5",
+  venue_partners: "105+",
 };
 
 export const mockSettings: SiteSettings = {
@@ -35,9 +35,13 @@ export const mockSettings: SiteSettings = {
       href: "#",
       children: [
         { label: "Agra weddings", href: "/agra-wedding-planner" },
+        { label: "Goa weddings", href: "/goa-wedding-planner" },
         { label: "Jaipur weddings", href: "/jaipur-wedding-planner" },
         { label: "Udaipur weddings", href: "/udaipur-wedding-planner" },
         { label: "Bharatpur weddings", href: "/bharatpur-wedding-planner" },
+        { label: "Destination Weddings", href: "/destination-weddings" },
+        { label: "Artist Management", href: "/artist-management" },
+        { label: "Awards", href: "/awards" },
         { label: "Real Weddings", href: "/real-weddings" },
         { label: "Services", href: "/services" },
         { label: "About Us", href: "/about" },

@@ -152,17 +152,6 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             <p>
               © {year} {settings.site_name}. All rights reserved.
             </p>
-            <p>
-              Website developed by{" "}
-              <a
-                href="https://www.7colorbox.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-maroon hover:underline"
-              >
-                7 Color Box LLP
-              </a>
-            </p>
           </div>
         </div>
       </FooterReveal>

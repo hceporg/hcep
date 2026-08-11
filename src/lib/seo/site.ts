@@ -22,7 +22,7 @@ export const SITE = {
     "https://www.instagram.com/highlightcreations/",
   ],
   priceRange: "$$$",
-  areaServed: ["Agra", "Bharatpur", "Jaipur", "Udaipur"] as const,
+  areaServed: ["Agra", "Bharatpur", "Jaipur", "Udaipur", "Goa"] as const,
 } as const;
 
 export type CitySlug =

@@ -344,7 +344,7 @@ create policy "Authenticated delete media"
 -- =============================================================================
 
 insert into site_stats (weddings_done, google_rating, venue_partners)
-select '1,043+', '4.8/5', '28,363+'
+select '1112+', '4.7/5', '105+'
 where not exists (select 1 from site_stats limit 1);
 
 insert into site_settings (site_name, cta_text, venue_cta_text, nav_items, phone, whatsapp, email, address)
@@ -354,9 +354,18 @@ select
   'Check availability',
   '[
     {"label":"Wedding Venues","href":"/venues"},
+    {"label":"Packages","href":"/destination-wedding-packages"},
     {"label":"Price Beat Challenge","href":"/price-beat-challenge"},
     {"label":"More","href":"#","children":[
-      {"label":"Our Work","href":"/portfolio"},
+      {"label":"Agra weddings","href":"/agra-wedding-planner"},
+      {"label":"Goa weddings","href":"/goa-wedding-planner"},
+      {"label":"Jaipur weddings","href":"/jaipur-wedding-planner"},
+      {"label":"Udaipur weddings","href":"/udaipur-wedding-planner"},
+      {"label":"Bharatpur weddings","href":"/bharatpur-wedding-planner"},
+      {"label":"Destination Weddings","href":"/destination-weddings"},
+      {"label":"Artist Management","href":"/artist-management"},
+      {"label":"Awards","href":"/awards"},
+      {"label":"Real Weddings","href":"/real-weddings"},
       {"label":"Services","href":"/services"},
       {"label":"About Us","href":"/about"},
       {"label":"Blog","href":"/blog"},
