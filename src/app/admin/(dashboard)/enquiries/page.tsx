@@ -3,17 +3,13 @@
 import type { Enquiry } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { useSupabaseTable } from "@/lib/supabase/admin-hooks";
-import { createClient } from "@/lib/supabase/client";
 
 export default function AdminEnquiriesPage() {
-  const { rows: enquiries, loading, error, reload } =
+  const { rows: enquiries, loading, error, update } =
     useSupabaseTable<Enquiry>({ table: "enquiries", orderBy: "created_at", ascending: false });
 
   async function setStatus(id: string, status: Enquiry["status"]) {
-    const sb = createClient();
-    if (!sb) return;
-    await sb.from("enquiries").update({ status }).eq("id", id);
-    reload();
+    await update(id, { status } as Partial<Enquiry>);
   }
 
   return (

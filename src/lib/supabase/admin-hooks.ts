@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClient } from "./client";
 
 type UseTableOptions<T> = {
   table: string;
@@ -21,24 +20,22 @@ export function useSupabaseTable<T extends { id: string }>({
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const sb = createClient();
-    if (!sb) {
-      setError("Supabase not configured");
-      setLoading(false);
-      return;
-    }
     setLoading(true);
-    let query = sb.from(table).select("*").order(orderBy, { ascending });
-    if (filter) {
-      Object.entries(filter).forEach(([k, v]) => {
-        query = query.eq(k, v);
-      });
-    }
-    const { data, error: err } = await query;
-    if (err) {
-      setError(err.message);
+    const search = new URLSearchParams({
+      orderBy,
+      ascending: String(ascending),
+    });
+    if (filter) search.set("filters", JSON.stringify(filter));
+
+    const res = await fetch(`/api/admin/${table}?${search.toString()}`, {
+      credentials: "include",
+      cache: "no-store",
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      setError(json?.error ?? "Failed to load data");
     } else {
-      setRows((data ?? []) as T[]);
+      setRows((json?.data ?? []) as T[]);
       setError(null);
     }
     setLoading(false);
@@ -50,10 +47,30 @@ export function useSupabaseTable<T extends { id: string }>({
 
   const upsert = useCallback(
     async (row: Partial<T> & { id?: string }) => {
-      const sb = createClient();
-      if (!sb) return { error: "Supabase not configured" };
-      const { error: err } = await sb.from(table).upsert(row as never);
-      if (err) return { error: err.message };
+      const res = await fetch(`/api/admin/${table}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ payload: row }),
+      });
+      const json = await res.json();
+      if (!res.ok) return { error: json?.error ?? "Save failed" };
+      await load();
+      return { error: null };
+    },
+    [table, load]
+  );
+
+  const update = useCallback(
+    async (id: string, updates: Partial<T>) => {
+      const res = await fetch(`/api/admin/${table}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id, updates }),
+      });
+      const json = await res.json();
+      if (!res.ok) return { error: json?.error ?? "Update failed" };
       await load();
       return { error: null };
     },
@@ -62,13 +79,16 @@ export function useSupabaseTable<T extends { id: string }>({
 
   const remove = useCallback(
     async (id: string) => {
-      const sb = createClient();
-      if (!sb) return;
-      await sb.from(table).delete().eq("id", id);
+      await fetch(`/api/admin/${table}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ id }),
+      });
       await load();
     },
     [table, load]
   );
 
-  return { rows, loading, error, reload: load, upsert, remove, setRows };
+  return { rows, loading, error, reload: load, upsert, update, remove, setRows };
 }

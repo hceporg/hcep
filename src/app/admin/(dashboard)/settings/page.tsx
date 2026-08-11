@@ -1,31 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import type { SiteSettings } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
-import { createClient } from "@/lib/supabase/client";
+import { useSupabaseTable } from "@/lib/supabase/admin-hooks";
 
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState<SiteSettings | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { rows, loading, upsert, reload } = useSupabaseTable<SiteSettings>({
+    table: "site_settings",
+    orderBy: "updated_at",
+    ascending: false,
+  });
+  const settings = rows[0] ?? null;
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-
-  const load = useCallback(async () => {
-    const sb = createClient();
-    if (!sb) return;
-    const { data } = await sb.from("site_settings").select("*").limit(1).single();
-    if (data) setSettings(data as SiteSettings);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
 
   async function save(form: FormData) {
     if (!settings) return;
     setSaving(true);
-    const sb = createClient();
-    if (!sb) return;
     const payload = {
       site_name: String(form.get("site_name")),
       cta_text: String(form.get("cta_text")),
@@ -35,15 +27,15 @@ export default function AdminSettingsPage() {
       email: String(form.get("email")),
       address: String(form.get("address")),
     };
-    const { error } = await sb.from("site_settings").update(payload).eq("id", settings.id);
+    const { error } = await upsert({ id: settings.id, ...payload });
     setSaving(false);
     if (error) {
-      alert("Save failed: " + error.message);
+      alert("Save failed: " + error);
       return;
     }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-    load();
+    reload();
   }
 
   if (loading) return <p className="text-sm text-muted">Loading…</p>;

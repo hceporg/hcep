@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 type Card = { label: string; count: number | string; href: string };
 
@@ -18,14 +17,19 @@ export default function AdminOverviewPage() {
 
   useEffect(() => {
     async function load() {
-      const sb = createClient();
-      if (!sb) return;
-      const tables = ["banners", "reels", "reviews", "venues", "blog_posts", "enquiries"];
+      const tables = ["banners", "reels", "reviews", "venues", "blog_posts", "enquiries"] as const;
       const counts = await Promise.all(
-        tables.map((t) => sb.from(t).select("id", { count: "exact", head: true }))
+        tables.map(async (table) => {
+          const res = await fetch(`/api/admin/${table}?countOnly=true`, {
+            credentials: "include",
+            cache: "no-store",
+          });
+          const json = await res.json();
+          return res.ok ? (json?.count ?? 0) : 0;
+        })
       );
       setCards((prev) =>
-        prev.map((c, i) => ({ ...c, count: counts[i].count ?? 0 }))
+        prev.map((c, i) => ({ ...c, count: counts[i] ?? 0 }))
       );
     }
     load();

@@ -1,45 +1,37 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import type { SiteStats } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
-import { createClient } from "@/lib/supabase/client";
+import { useSupabaseTable } from "@/lib/supabase/admin-hooks";
 
 export default function AdminStatsPage() {
-  const [stats, setStats] = useState<SiteStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { rows, loading, upsert, reload } = useSupabaseTable<SiteStats>({
+    table: "site_stats",
+    orderBy: "updated_at",
+    ascending: false,
+  });
+  const stats = rows[0] ?? null;
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-
-  const load = useCallback(async () => {
-    const sb = createClient();
-    if (!sb) return;
-    const { data } = await sb.from("site_stats").select("*").limit(1).single();
-    if (data) setStats(data as SiteStats);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
 
   async function save(form: FormData) {
     if (!stats) return;
     setSaving(true);
-    const sb = createClient();
-    if (!sb) return;
     const payload = {
       weddings_done: String(form.get("weddings_done")),
       google_rating: String(form.get("google_rating")),
       venue_partners: String(form.get("venue_partners")),
     };
-    const { error } = await sb.from("site_stats").update(payload).eq("id", stats.id);
+    const { error } = await upsert({ id: stats.id, ...payload });
     setSaving(false);
     if (error) {
-      alert("Save failed: " + error.message);
+      alert("Save failed: " + error);
       return;
     }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-    load();
+    reload();
   }
 
   if (loading) return <p className="text-sm text-muted">Loading…</p>;
