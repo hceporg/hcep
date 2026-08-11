@@ -2,6 +2,8 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { getSettings } from "@/lib/data";
 
+export const revalidate = 60;
+
 export default async function PublicLayout({
   children,
 }: {

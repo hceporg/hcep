@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { SiteSettings } from "@/lib/types";
 import { FooterReveal } from "@/components/layout/FooterReveal";
 import { SITE } from "@/lib/seo/site";
+import { FOOTER_CITIES, FOOTER_EXPLORE } from "@/lib/nav";
 
 export function Footer({ settings }: { settings: SiteSettings }) {
   const year = new Date().getFullYear();
@@ -16,9 +17,9 @@ export function Footer({ settings }: { settings: SiteSettings }) {
                 {settings.site_name}
               </p>
               <p className="text-sm text-muted leading-relaxed">
-                Full-service destination wedding planning across Agra,
-                Bharatpur, Jaipur, and Udaipur — palaces, forts, and heritage
-                venues.
+                Full-service destination wedding planning across Agra, Goa,
+                Bharatpur, Jaipur, and Udaipur — palaces, forts, beaches, and
+                heritage venues.
               </p>
               <p className="text-xs text-muted mt-4 leading-relaxed">
                 {SITE.addressFull}
@@ -28,68 +29,26 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             <div>
               <p className="text-sm font-semibold text-ink mb-3">Cities</p>
               <ul className="space-y-2 text-sm text-muted">
-                <li>
-                  <Link href="/agra-wedding-planner" className="hover:text-maroon">
-                    Agra wedding planner
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/jaipur-wedding-planner" className="hover:text-maroon">
-                    Jaipur wedding planner
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/udaipur-wedding-planner" className="hover:text-maroon">
-                    Udaipur wedding planner
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/bharatpur-wedding-planner"
-                    className="hover:text-maroon"
-                  >
-                    Bharatpur wedding planner
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/destination-wedding-packages"
-                    className="hover:text-maroon"
-                  >
-                    Wedding packages
-                  </Link>
-                </li>
+                {FOOTER_CITIES.map((item) => (
+                  <li key={item.href}>
+                    <Link href={item.href} className="hover:text-maroon">
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
             <div>
               <p className="text-sm font-semibold text-ink mb-3">Explore</p>
               <ul className="space-y-2 text-sm text-muted">
-                <li>
-                  <Link href="/venues" className="hover:text-maroon">
-                    Wedding venues
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/real-weddings" className="hover:text-maroon">
-                    Real weddings
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/services" className="hover:text-maroon">
-                    Services
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/blog" className="hover:text-maroon">
-                    Blog
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/price-beat-challenge" className="hover:text-maroon">
-                    Price Beat Challenge
-                  </Link>
-                </li>
+                {FOOTER_EXPLORE.map((item) => (
+                  <li key={item.href}>
+                    <Link href={item.href} className="hover:text-maroon">
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 

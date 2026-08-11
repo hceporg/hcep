@@ -27,30 +27,7 @@ export const mockSettings: SiteSettings = {
   email: "contact.hcep@gmail.com",
   address:
     "Panchwati Plaza, Kaveri Vihar Phase II, Shamsabad, Agra, Basai, Uttar Pradesh 282004",
-  nav_items: [
-    { label: "Wedding Venues", href: "/venues" },
-    { label: "Packages", href: "/destination-wedding-packages" },
-    {
-      label: "More",
-      href: "#",
-      children: [
-        { label: "Agra weddings", href: "/agra-wedding-planner" },
-        { label: "Goa weddings", href: "/goa-wedding-planner" },
-        { label: "Jaipur weddings", href: "/jaipur-wedding-planner" },
-        { label: "Udaipur weddings", href: "/udaipur-wedding-planner" },
-        { label: "Bharatpur weddings", href: "/bharatpur-wedding-planner" },
-        { label: "Destination Weddings", href: "/destination-weddings" },
-        { label: "Artist Management", href: "/artist-management" },
-        { label: "Awards", href: "/awards" },
-        { label: "Real Weddings", href: "/real-weddings" },
-        { label: "Services", href: "/services" },
-        { label: "About Us", href: "/about" },
-        { label: "Blog", href: "/blog" },
-        { label: "FAQ", href: "/faq" },
-        { label: "Contact", href: "/contact" },
-      ],
-    },
-  ],
+  nav_items: [], // filled from SITE_NAV in getSettings()
 };
 
 export const mockBanners: Banner[] = [

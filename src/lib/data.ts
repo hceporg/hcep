@@ -10,6 +10,7 @@ import {
   mockStats,
   mockVenues,
 } from "@/lib/mock-data";
+import { SITE_NAV } from "@/lib/nav";
 import type {
   Banner,
   BlogPost,
@@ -105,7 +106,7 @@ export async function getStats(): Promise<SiteStats> {
 }
 
 export async function getSettings(): Promise<SiteSettings> {
-  if (!supabaseConfigured()) return mockSettings;
+  if (!supabaseConfigured()) return { ...mockSettings, nav_items: SITE_NAV };
 
   const supabase = createPublicClient()!;
   const { data, error } = await supabase
@@ -115,9 +116,10 @@ export async function getSettings(): Promise<SiteSettings> {
     .single();
   if (error || !data) {
     if (error) console.error("getSettings:", error.message);
-    return mockSettings;
+    return { ...mockSettings, nav_items: SITE_NAV };
   }
-  return data as SiteSettings;
+  // Always use canonical nav so new pages appear even if DB seed is outdated
+  return { ...(data as SiteSettings), nav_items: SITE_NAV };
 }
 
 export async function getVenues(filters?: {
