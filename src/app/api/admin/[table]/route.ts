@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdminSession } from "@/lib/supabase/admin-server";
 
 const ALLOWED_TABLES = new Set([
   "banners",
@@ -18,11 +18,7 @@ function badRequest(message: string) {
 }
 
 async function getAuthedClient() {
-  const supabase = await createClient();
-  if (!supabase) return { error: "Supabase is not configured", status: 500 as const };
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) return { error: "Unauthorized", status: 401 as const };
-  return { supabase };
+  return requireAdminSession();
 }
 
 export async function GET(

@@ -6,7 +6,9 @@ export async function updateSession(request: NextRequest) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   const isLogin = request.nextUrl.pathname.startsWith("/admin/login");
-  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin") && !isLogin;
+  const isAdminApi = request.nextUrl.pathname.startsWith("/api/admin");
+  const isAdminRoute =
+    (request.nextUrl.pathname.startsWith("/admin") && !isLogin) || isAdminApi;
 
   // Without Supabase, block the dashboard entirely (no open/demo access)
   if (!url || !key) {

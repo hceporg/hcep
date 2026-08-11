@@ -238,18 +238,18 @@ create policy "Public read media assets" on media_assets for select using (true)
 -- Anon keep-alive inserts (cron uses anon key)
 create policy "Public insert keep alive" on keep_alive_pings for insert with check (true);
 
-create policy "Admin all banners" on banners for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "Admin all reels" on reels for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "Admin all reviews" on reviews for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "Admin all posts" on blog_posts for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "Admin all media assets" on media_assets for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "Admin all venues" on venues for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "Admin all portfolio" on portfolio for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "Admin all stats" on site_stats for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "Admin all settings" on site_settings for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "Admin all enquiries" on enquiries for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "Admin all faqs" on faqs for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
-create policy "Admin all keep alive" on keep_alive_pings for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+create policy "Admin all banners" on banners for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all reels" on reels for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all reviews" on reviews for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all posts" on blog_posts for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all media assets" on media_assets for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all venues" on venues for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all portfolio" on portfolio for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all stats" on site_stats for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all settings" on site_settings for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all enquiries" on enquiries for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all faqs" on faqs for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all keep alive" on keep_alive_pings for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
 create policy "Admin read profiles" on profiles for select using (auth.uid() = id);
 
 create or replace function public.handle_new_user()
@@ -328,16 +328,26 @@ create policy "Public read media"
 
 create policy "Authenticated upload media"
   on storage.objects for insert
-  with check (bucket_id = 'media' and auth.role() = 'authenticated');
+  to authenticated
+  with check (bucket_id = 'media' and (select auth.uid()) is not null);
 
 create policy "Authenticated update media"
   on storage.objects for update
-  using (bucket_id = 'media' and auth.role() = 'authenticated')
-  with check (bucket_id = 'media' and auth.role() = 'authenticated');
+  to authenticated
+  using (bucket_id = 'media' and (select auth.uid()) is not null)
+  with check (bucket_id = 'media' and (select auth.uid()) is not null);
 
 create policy "Authenticated delete media"
   on storage.objects for delete
-  using (bucket_id = 'media' and auth.role() = 'authenticated');
+  to authenticated
+  using (bucket_id = 'media' and (select auth.uid()) is not null);
+
+-- Table grants (PostgREST roles need explicit privileges)
+grant usage on schema public to postgres, anon, authenticated, service_role;
+grant all on all tables in schema public to postgres, service_role;
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant select on all tables in schema public to anon;
+grant usage, select on all sequences in schema public to postgres, service_role, authenticated;
 
 -- =============================================================================
 -- SEEDS
