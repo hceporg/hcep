@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BrandLogoMark } from "@/components/layout/BrandLogo";
 
 export function PageLoader() {
   const [phase, setPhase] = useState<"loading" | "exiting" | "done">("loading");
@@ -21,7 +22,6 @@ export function PageLoader() {
       finish();
     } else {
       window.addEventListener("load", finish, { once: true });
-      // Fallback if load is slow / already interactive
       window.setTimeout(finish, 1800);
     }
   }, []);
@@ -34,8 +34,10 @@ export function PageLoader() {
       aria-hidden={phase !== "loading"}
     >
       <div className="page-loader-inner">
-        <div className="page-loader-mark" />
-        <p className="page-loader-brand">Highlight Creations</p>
+        <BrandLogoMark
+          priority
+          className="h-24 sm:h-28 page-loader-logo animate-[loader-pulse_1.2s_ease-in-out_infinite]"
+        />
         <div className="page-loader-bar">
           <span />
         </div>

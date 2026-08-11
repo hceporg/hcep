@@ -60,6 +60,11 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true },
   },
+  icons: {
+    icon: "/images/logo-hc.png",
+    apple: "/images/logo-hc.png",
+    shortcut: "/images/logo-hc.png",
+  },
 };
 
 export default function RootLayout({

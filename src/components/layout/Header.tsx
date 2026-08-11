@@ -4,35 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
 import type { SiteSettings } from "@/lib/types";
-import { cn } from "@/lib/utils";
-
-function Logo({
-  name,
-  className,
-}: {
-  name: string;
-  className?: string;
-}) {
-  return (
-    <Link href="/" className={cn("flex items-center gap-2.5 group", className)}>
-      <svg
-        viewBox="0 0 40 40"
-        className="size-8 text-maroon"
-        fill="currentColor"
-        aria-hidden
-      >
-        <path d="M20 2c1.5 6 6 10.5 12 12-6 1.5-10.5 6-12 12-1.5-6-6-10.5-12-12 6-1.5 10.5-6 12-12z" />
-        <path
-          d="M20 10c.8 3.2 3.2 5.6 6.4 6.4-3.2.8-5.6 3.2-6.4 6.4-.8-3.2-3.2-5.6-6.4-6.4 3.2-.8 5.6-3.2 6.4-6.4z"
-          opacity="0.7"
-        />
-      </svg>
-      <span className="font-serif text-lg sm:text-xl text-maroon tracking-tight group-hover:text-maroon-dark transition-colors">
-        {name}
-      </span>
-    </Link>
-  );
-}
+import { BrandLogo } from "@/components/layout/BrandLogo";
 
 export function Header({ settings }: { settings: SiteSettings }) {
   const [open, setOpen] = useState(false);
@@ -42,7 +14,7 @@ export function Header({ settings }: { settings: SiteSettings }) {
     <header className="header-animate sticky top-0 z-50 bg-cream/95 backdrop-blur-md border-b border-border/60">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 sm:h-[72px] items-center justify-between gap-4">
-          <Logo name={settings.site_name} />
+          <BrandLogo name={settings.site_name} priority />
 
           <nav className="hidden md:flex items-center gap-8">
             {settings.nav_items.map((item) =>

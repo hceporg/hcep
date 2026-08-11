@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { SiteSettings } from "@/lib/types";
 import { FooterReveal } from "@/components/layout/FooterReveal";
 import { SITE } from "@/lib/seo/site";
@@ -107,10 +108,26 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             </div>
           </div>
 
-          <div className="mt-12 pt-6 border-t border-border flex flex-col sm:flex-row justify-between gap-3 text-xs text-muted">
+          <div className="mt-12 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted">
             <p>
               © {year} {settings.site_name}. All rights reserved.
             </p>
+            <div className="flex items-center gap-3 shrink-0">
+              <Image
+                src="/images/award-weddingwire-2024.png"
+                alt="WeddingWire.in Wedding Awards 2024"
+                width={56}
+                height={56}
+                className="h-10 w-auto object-contain"
+              />
+              <Image
+                src="/images/award-weddingwire-2026.png"
+                alt="WeddingWire.in Wedding Awards 2026"
+                width={56}
+                height={56}
+                className="h-10 w-auto object-contain"
+              />
+            </div>
           </div>
         </div>
       </FooterReveal>
