@@ -42,9 +42,11 @@ export async function getBanners(): Promise<Banner[]> {
 
   if (error) {
     console.error("getBanners:", error.message);
-    return [];
+    return mockBanners.filter((b) => b.is_active);
   }
-  return (data ?? []) as Banner[];
+  // Keep demo banners when the table is still empty
+  if (!data?.length) return mockBanners.filter((b) => b.is_active);
+  return data as Banner[];
 }
 
 export async function getReels(): Promise<Reel[]> {
@@ -59,9 +61,11 @@ export async function getReels(): Promise<Reel[]> {
 
   if (error) {
     console.error("getReels:", error.message);
-    return [];
+    return mockReels.filter((r) => r.is_active);
   }
-  return (data ?? []) as Reel[];
+  // Keep demo reels when the table is still empty
+  if (!data?.length) return mockReels.filter((r) => r.is_active);
+  return data as Reel[];
 }
 
 export async function getReviews(): Promise<Review[]> {
@@ -77,9 +81,11 @@ export async function getReviews(): Promise<Review[]> {
 
   if (error) {
     console.error("getReviews:", error.message);
-    return [];
+    return mockReviews.filter((r) => r.is_active);
   }
-  return (data ?? []) as Review[];
+  // Keep demo reviews when the table is still empty
+  if (!data?.length) return mockReviews.filter((r) => r.is_active);
+  return data as Review[];
 }
 
 export async function getStats(): Promise<SiteStats> {
