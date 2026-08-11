@@ -16,6 +16,9 @@ import {
 } from "@/lib/data";
 import { buildMetadata } from "@/lib/seo/site";
 
+/** Re-fetch homepage content from Supabase every 60s (admin edits show quickly). */
+export const revalidate = 60;
+
 export const metadata: Metadata = buildMetadata({
   title: "Best Destination Wedding Planner in Rajasthan | Highlight Creations",
   description:
