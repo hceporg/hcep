@@ -1,22 +1,42 @@
 import { createClient } from "@/lib/supabase/client";
+import { convertImageToWebp } from "@/lib/image/webp";
 
 /** Free tier: 1 GB total Storage — keep files compressed and lean. */
 export const MEDIA_BUCKET = "media";
 
-export const BLOG_IMAGE_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
-export const BANNER_IMAGE_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+export const IMAGE_MAX_BYTES = 5 * 1024 * 1024; // 5 MB (before / after webp)
+export const BLOG_IMAGE_MAX_BYTES = IMAGE_MAX_BYTES;
+export const BANNER_IMAGE_MAX_BYTES = IMAGE_MAX_BYTES;
 /** Compress banner videos (ffmpeg) before upload — stay well under 1 GB total. */
 export const BANNER_VIDEO_MAX_BYTES = 80 * 1024 * 1024; // 80 MB
 
-export const BLOG_IMAGE_ACCEPT = "image/jpeg,image/jpg,image/png,image/webp,image/gif";
+export const IMAGE_ACCEPT =
+  "image/jpeg,image/jpg,image/png,image/webp,image/gif";
+export const BLOG_IMAGE_ACCEPT = IMAGE_ACCEPT;
 export const BANNER_MEDIA_ACCEPT =
   "image/jpeg,image/jpg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime";
 
-export const BLOG_IMAGE_RECOMMENDED =
-  "Recommended size: 1600 × 900 px (16:9). Max file size: 5 MB. Formats: JPG, PNG, WebP, GIF.";
+export const IMAGE_SIZE_HINTS = {
+  reel_thumb:
+    "Recommended: 1080 × 1920 px (9:16). Max 5 MB. Converted to WebP before upload.",
+  venue:
+    "Recommended: 1600 × 1200 px (4:3). Max 5 MB. Converted to WebP before upload.",
+  portfolio:
+    "Recommended: 1600 × 1067 px (3:2). Max 5 MB. Converted to WebP before upload.",
+  cta:
+    "Recommended: 1920 × 1080 px (16:9). Max 5 MB. Images convert to WebP; videos stay as uploaded.",
+  blog_cover:
+    "Recommended: 1600 × 900 px (16:9). Max 5 MB. Converted to WebP before upload.",
+  blog_inline:
+    "Recommended: 1200 × 800 px. Max 5 MB. Converted to WebP before upload.",
+  banner:
+    "Images: 1920 × 1080 px, max 5 MB (→ WebP). Videos: H.264 MP4, max 80 MB.",
+  other:
+    "Max 5 MB. Images are converted to WebP before upload.",
+} as const;
 
-export const BANNER_MEDIA_RECOMMENDED =
-  "Images: 1920 × 1080 px, max 5 MB. Videos: compress with ffmpeg first (H.264 MP4), max 80 MB. All files use the shared 1 GB Supabase Storage quota.";
+export const BLOG_IMAGE_RECOMMENDED = IMAGE_SIZE_HINTS.blog_cover;
+export const BANNER_MEDIA_RECOMMENDED = IMAGE_SIZE_HINTS.banner;
 
 const IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -32,7 +52,15 @@ const VIDEO_TYPES = new Set([
   "video/quicktime",
 ]);
 
-export type MediaKind = "blog_cover" | "blog_inline" | "banner";
+export type MediaKind =
+  | "blog_cover"
+  | "blog_inline"
+  | "banner"
+  | "venue"
+  | "portfolio"
+  | "cta"
+  | "reel_thumb"
+  | "other";
 
 export type UploadResult = {
   publicUrl: string;
@@ -48,14 +76,18 @@ function mediaTypeOf(mime: string): "image" | "video" {
   return VIDEO_TYPES.has(mime) ? "video" : "image";
 }
 
-export function validateBlogImage(file: File): string | null {
+export function validateImage(file: File): string | null {
   if (!IMAGE_TYPES.has(file.type)) {
     return "Please upload a JPG, PNG, WebP, or GIF image.";
   }
-  if (file.size > BLOG_IMAGE_MAX_BYTES) {
+  if (file.size > IMAGE_MAX_BYTES) {
     return "Image must be 5 MB or smaller.";
   }
   return null;
+}
+
+export function validateBlogImage(file: File): string | null {
+  return validateImage(file);
 }
 
 export function validateBannerMedia(file: File): string | null {
@@ -74,9 +106,32 @@ export function validateBannerMedia(file: File): string | null {
 }
 
 function folderFor(kind: MediaKind): string {
-  if (kind === "banner") return "banners";
-  if (kind === "blog_inline") return "blog/inline";
-  return "blog/covers";
+  switch (kind) {
+    case "banner":
+      return "banners";
+    case "blog_inline":
+      return "blog/inline";
+    case "blog_cover":
+      return "blog/covers";
+    case "venue":
+      return "venues";
+    case "portfolio":
+      return "portfolio";
+    case "cta":
+      return "cta";
+    case "reel_thumb":
+      return "reels";
+    default:
+      return "other";
+  }
+}
+
+function purposeFor(kind: MediaKind): string {
+  if (kind === "banner" || kind === "blog_cover" || kind === "blog_inline") {
+    return kind;
+  }
+  if (kind === "venue" || kind === "portfolio") return kind;
+  return "other";
 }
 
 async function uploadToMedia(
@@ -123,7 +178,7 @@ async function uploadToMedia(
     file_name: file.name,
     mime_type: file.type,
     size_bytes: file.size,
-    purpose: kind === "banner" ? "banner" : kind,
+    purpose: purposeFor(kind),
   });
 
   return {
@@ -137,14 +192,26 @@ async function uploadToMedia(
   };
 }
 
+/** Upload any image — converts to WebP in the browser first. */
+export async function uploadImage(
+  file: File,
+  kind: MediaKind = "other"
+): Promise<UploadResult> {
+  const validationError = validateImage(file);
+  if (validationError) throw new Error(validationError);
+  const webp = await convertImageToWebp(file);
+  if (webp.size > IMAGE_MAX_BYTES) {
+    throw new Error("Converted WebP is still over 5 MB. Try a smaller source image.");
+  }
+  return uploadToMedia(webp, kind);
+}
+
 /** Upload a blog cover/inline image to Supabase Storage. */
 export async function uploadBlogImage(
   file: File,
   folder: "covers" | "inline" = "covers"
 ): Promise<UploadResult> {
-  const validationError = validateBlogImage(file);
-  if (validationError) throw new Error(validationError);
-  return uploadToMedia(
+  return uploadImage(
     file,
     folder === "inline" ? "blog_inline" : "blog_cover"
   );
@@ -154,7 +221,27 @@ export async function uploadBlogImage(
 export async function uploadBannerMedia(file: File): Promise<UploadResult> {
   const validationError = validateBannerMedia(file);
   if (validationError) throw new Error(validationError);
+  if (file.type.startsWith("image/")) {
+    const webp = await convertImageToWebp(file);
+    if (webp.size > BANNER_IMAGE_MAX_BYTES) {
+      throw new Error("Converted WebP is still over 5 MB.");
+    }
+    return uploadToMedia(webp, "banner");
+  }
   return uploadToMedia(file, "banner");
+}
+
+/** Upload CTA / venue / portfolio / reel thumbnail media. */
+export async function uploadMediaFile(
+  file: File,
+  kind: MediaKind
+): Promise<UploadResult> {
+  if (file.type.startsWith("video/")) {
+    const invalid = validateBannerMedia(file);
+    if (invalid) throw new Error(invalid);
+    return uploadToMedia(file, kind);
+  }
+  return uploadImage(file, kind);
 }
 
 /** @deprecated Use MEDIA_BUCKET — kept for older imports */

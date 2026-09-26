@@ -3,17 +3,45 @@
 import { useState } from "react";
 import type { PortfolioItem } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import { slugify } from "@/lib/utils";
 import { useSupabaseTable } from "@/lib/supabase/admin-hooks";
 
 export default function AdminPortfolioPage() {
   const { rows: items, loading, error, upsert, remove } =
-    useSupabaseTable<PortfolioItem>({ table: "portfolio", orderBy: "created_at", ascending: false });
+    useSupabaseTable<PortfolioItem>({
+      table: "portfolio",
+      orderBy: "created_at",
+      ascending: false,
+    });
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<PortfolioItem | null>(null);
+  const [coverImage, setCoverImage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  function openNew() {
+    setEditing(null);
+    setCoverImage(null);
+    setShowForm(true);
+  }
+
+  function openEdit(item: PortfolioItem) {
+    setEditing(item);
+    setCoverImage(item.cover_image);
+    setShowForm(true);
+  }
+
+  function closeForm() {
+    setShowForm(false);
+    setEditing(null);
+    setCoverImage(null);
+  }
+
   async function save(form: FormData) {
+    if (!coverImage) {
+      alert("Please upload a cover image.");
+      return;
+    }
     setSaving(true);
     const title = String(form.get("title"));
     const payload: Partial<PortfolioItem> = {
@@ -22,7 +50,7 @@ export default function AdminPortfolioPage() {
       couple_name: String(form.get("couple_name")),
       location: String(form.get("location") || ""),
       date_label: String(form.get("date_label") || ""),
-      cover_image: String(form.get("cover_image")),
+      cover_image: coverImage,
       gallery: editing?.gallery ?? [],
       description: String(form.get("description") || ""),
       is_featured: form.get("is_featured") === "on",
@@ -34,8 +62,7 @@ export default function AdminPortfolioPage() {
       alert("Save failed: " + result.error);
       return;
     }
-    setShowForm(false);
-    setEditing(null);
+    closeForm();
   }
 
   return (
@@ -44,34 +71,35 @@ export default function AdminPortfolioPage() {
         <div>
           <h1 className="font-serif text-3xl text-maroon">Portfolio</h1>
           <p className="text-sm text-muted mt-1">
-            Recently executed weddings gallery.
+            Recently executed weddings — upload cover images (converted to
+            WebP).
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setShowForm(true);
-          }}
-        >
-          Add wedding
-        </Button>
+        <Button onClick={openNew}>Add wedding</Button>
       </div>
 
       {error && (
-        <p className="mt-4 text-sm text-red-600 bg-red-50 rounded-lg p-3">{error}</p>
+        <p className="mt-4 text-sm text-red-600 bg-red-50 rounded-lg p-3">
+          {error}
+        </p>
       )}
       {loading && <p className="mt-6 text-sm text-muted">Loading…</p>}
 
-      {(showForm || editing) && (
+      {showForm && (
         <form
           className="mt-6 rounded-xl border border-border bg-white p-5 space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
-            save(new FormData(e.currentTarget));
+            void save(new FormData(e.currentTarget));
           }}
         >
           <div className="grid sm:grid-cols-2 gap-3">
-            <Field name="title" label="Title" defaultValue={editing?.title} required />
+            <Field
+              name="title"
+              label="Title"
+              defaultValue={editing?.title}
+              required
+            />
             <Field
               name="couple_name"
               label="Couple name"
@@ -80,15 +108,23 @@ export default function AdminPortfolioPage() {
             />
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
-            <Field name="location" label="Location" defaultValue={editing?.location} />
-            <Field name="date_label" label="Date" defaultValue={editing?.date_label} />
+            <Field
+              name="location"
+              label="Location"
+              defaultValue={editing?.location}
+            />
+            <Field
+              name="date_label"
+              label="Date"
+              defaultValue={editing?.date_label}
+            />
             <Field name="slug" label="Slug" defaultValue={editing?.slug} />
           </div>
-          <Field
-            name="cover_image"
-            label="Cover image URL"
-            defaultValue={editing?.cover_image}
-            required
+          <ImageUpload
+            label="Cover image"
+            kind="portfolio"
+            value={coverImage}
+            onChange={setCoverImage}
           />
           <label className="block text-sm">
             Description
@@ -111,14 +147,7 @@ export default function AdminPortfolioPage() {
             <Button type="submit" disabled={saving}>
               {saving ? "Saving…" : "Save"}
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setShowForm(false);
-                setEditing(null);
-              }}
-            >
+            <Button type="button" variant="ghost" onClick={closeForm}>
               Cancel
             </Button>
           </div>
@@ -148,10 +177,7 @@ export default function AdminPortfolioPage() {
                 <Button
                   variant="outline"
                   className="!px-2 !py-1 text-xs"
-                  onClick={() => {
-                    setEditing(item);
-                    setShowForm(true);
-                  }}
+                  onClick={() => openEdit(item)}
                 >
                   Edit
                 </Button>
@@ -159,7 +185,7 @@ export default function AdminPortfolioPage() {
                   variant="ghost"
                   className="!px-2 !py-1 text-xs"
                   onClick={() => {
-                    if (confirm("Delete?")) remove(item.id);
+                    if (confirm("Delete?")) void remove(item.id);
                   }}
                 >
                   Del

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Reel } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import { useSupabaseTable } from "@/lib/supabase/admin-hooks";
 
 export default function AdminReelsPage() {
@@ -10,7 +11,26 @@ export default function AdminReelsPage() {
     useSupabaseTable<Reel>({ table: "reels" });
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Reel | null>(null);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  function openNew() {
+    setEditing(null);
+    setThumbnailUrl(null);
+    setShowForm(true);
+  }
+
+  function openEdit(reel: Reel) {
+    setEditing(reel);
+    setThumbnailUrl(reel.thumbnail_url);
+    setShowForm(true);
+  }
+
+  function closeForm() {
+    setShowForm(false);
+    setEditing(null);
+    setThumbnailUrl(null);
+  }
 
   async function save(form: FormData) {
     setSaving(true);
@@ -21,7 +41,7 @@ export default function AdminReelsPage() {
       view_count: Number(form.get("view_count") || 0),
       sort_order: Number(form.get("sort_order") || 0),
       is_active: form.get("is_active") === "on",
-      thumbnail_url: null,
+      thumbnail_url: thumbnailUrl,
     };
     if (editing) payload.id = editing.id;
     const result = await upsert(payload);
@@ -30,8 +50,7 @@ export default function AdminReelsPage() {
       alert("Save failed: " + result.error);
       return;
     }
-    setShowForm(false);
-    setEditing(null);
+    closeForm();
   }
 
   return (
@@ -40,17 +59,11 @@ export default function AdminReelsPage() {
         <div>
           <h1 className="font-serif text-3xl text-maroon">Experience Reels</h1>
           <p className="text-sm text-muted mt-1">
-            Paste Instagram reel URLs — rendered via oEmbed on the site.
+            Paste Instagram reel URLs and optionally upload a custom thumbnail
+            (recommended). Without a thumbnail, the site tries Instagram oEmbed.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setShowForm(true);
-          }}
-        >
-          Add reel
-        </Button>
+        <Button onClick={openNew}>Add reel</Button>
       </div>
 
       {error && (
@@ -61,12 +74,12 @@ export default function AdminReelsPage() {
 
       {loading && <p className="mt-6 text-sm text-muted">Loading…</p>}
 
-      {(showForm || editing) && (
+      {showForm && (
         <form
           className="mt-6 rounded-xl border border-border bg-white p-5 space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
-            save(new FormData(e.currentTarget));
+            void save(new FormData(e.currentTarget));
           }}
         >
           <Field
@@ -89,6 +102,12 @@ export default function AdminReelsPage() {
               defaultValue={editing?.location}
             />
           </div>
+          <ImageUpload
+            label="Thumbnail image (optional)"
+            kind="reel_thumb"
+            value={thumbnailUrl}
+            onChange={setThumbnailUrl}
+          />
           <div className="grid sm:grid-cols-2 gap-3">
             <Field
               name="view_count"
@@ -115,14 +134,7 @@ export default function AdminReelsPage() {
             <Button type="submit" disabled={saving}>
               {saving ? "Saving…" : "Save"}
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setShowForm(false);
-                setEditing(null);
-              }}
-            >
+            <Button type="button" variant="ghost" onClick={closeForm}>
               Cancel
             </Button>
           </div>
@@ -138,22 +150,30 @@ export default function AdminReelsPage() {
               key={r.id}
               className="flex flex-col sm:flex-row gap-4 rounded-xl border border-border bg-white p-4 items-start sm:items-center"
             >
+              {r.thumbnail_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={r.thumbnail_url}
+                  alt=""
+                  className="w-16 h-28 object-cover rounded-lg shrink-0"
+                />
+              ) : (
+                <div className="w-16 h-28 rounded-lg bg-cream-dark shrink-0" />
+              )}
               <div className="flex-1 min-w-0">
                 <p className="font-medium">{r.couple_name}</p>
                 <p className="text-xs text-muted truncate">{r.instagram_url}</p>
                 <p className="text-xs text-muted mt-1">
                   {r.location} · 👁 {r.view_count} ·{" "}
                   {r.is_active ? "active" : "hidden"}
+                  {r.thumbnail_url ? " · custom thumb" : " · auto thumb"}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   className="!px-3 !py-1.5 text-xs"
-                  onClick={() => {
-                    setEditing(r);
-                    setShowForm(true);
-                  }}
+                  onClick={() => openEdit(r)}
                 >
                   Edit
                 </Button>
@@ -161,7 +181,7 @@ export default function AdminReelsPage() {
                   variant="ghost"
                   className="!px-3 !py-1.5 text-xs"
                   onClick={() => {
-                    if (confirm("Delete this reel?")) remove(r.id);
+                    if (confirm("Delete this reel?")) void remove(r.id);
                   }}
                 >
                   Delete

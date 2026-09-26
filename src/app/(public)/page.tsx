@@ -7,12 +7,16 @@ import { VenueCtaSection } from "@/components/home/VenueCtaSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { LocationSection } from "@/components/home/LocationSection";
 import { WhyBetterSection } from "@/components/home/WhyBetterSection";
+import { CityVenuesSection } from "@/components/home/CityVenuesSection";
 import {
   getBanners,
+  getCtaBanner,
   getReels,
   getReviews,
   getSettings,
   getStats,
+  getVenueCities,
+  getVenues,
 } from "@/lib/data";
 import { buildMetadata } from "@/lib/seo/site";
 
@@ -32,13 +36,17 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function HomePage() {
-  const [banners, reels, reviews, stats, settings] = await Promise.all([
-    getBanners(),
-    getReels(),
-    getReviews(),
-    getStats(),
-    getSettings(),
-  ]);
+  const [banners, reels, reviews, stats, settings, cities, venues, cta] =
+    await Promise.all([
+      getBanners(),
+      getReels(),
+      getReviews(),
+      getStats(),
+      getSettings(),
+      getVenueCities(),
+      getVenues(),
+      getCtaBanner("home_venue"),
+    ]);
 
   return (
     <>
@@ -48,7 +56,8 @@ export default async function HomePage() {
       <HowItWorksSection settings={settings} />
       <LocationSection settings={settings} />
       <WhyBetterSection settings={settings} />
-      <VenueCtaSection settings={settings} />
+      <CityVenuesSection cities={cities} venues={venues} />
+      <VenueCtaSection settings={settings} cta={cta} />
 
       <section className="bg-cream border-t border-border py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

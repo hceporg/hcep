@@ -61,9 +61,12 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true },
   },
   icons: {
-    icon: "/images/logo-hc.png",
-    apple: "/images/logo-hc.png",
-    shortcut: "/images/logo-hc.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/images/favicon.png", type: "image/png" },
+    ],
+    apple: "/images/favicon.png",
+    shortcut: "/favicon.ico",
   },
 };
 

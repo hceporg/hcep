@@ -2,18 +2,21 @@ import { createPublicClient } from "@/lib/supabase/public";
 import {
   mockBanners,
   mockBlogPosts,
+  mockCtaBanner,
   mockFaqs,
   mockPortfolio,
   mockReels,
   mockReviews,
   mockSettings,
   mockStats,
+  mockVenueCities,
   mockVenues,
 } from "@/lib/mock-data";
 import { SITE_NAV } from "@/lib/nav";
 import type {
   Banner,
   BlogPost,
+  CtaBanner,
   FaqItem,
   PortfolioItem,
   Reel,
@@ -21,6 +24,7 @@ import type {
   SiteSettings,
   SiteStats,
   Venue,
+  VenueCity,
 } from "@/lib/types";
 
 /** Mock data only when Supabase env vars are missing (local dev). */
@@ -122,8 +126,47 @@ export async function getSettings(): Promise<SiteSettings> {
   return { ...(data as SiteSettings), nav_items: SITE_NAV };
 }
 
+export async function getVenueCities(): Promise<VenueCity[]> {
+  if (!supabaseConfigured()) return mockVenueCities.filter((c) => c.is_active);
+
+  const supabase = createPublicClient()!;
+  const { data, error } = await supabase
+    .from("venue_cities")
+    .select("*")
+    .eq("is_active", true)
+    .order("sort_order");
+
+  if (error) {
+    console.error("getVenueCities:", error.message);
+    return mockVenueCities.filter((c) => c.is_active);
+  }
+  if (!data?.length) return mockVenueCities.filter((c) => c.is_active);
+  return data as VenueCity[];
+}
+
+export async function getCtaBanner(key = "home_venue"): Promise<CtaBanner | null> {
+  if (!supabaseConfigured()) {
+    return key === "home_venue" ? mockCtaBanner : null;
+  }
+
+  const supabase = createPublicClient()!;
+  const { data, error } = await supabase
+    .from("cta_banners")
+    .select("*")
+    .eq("key", key)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (error) {
+    console.error("getCtaBanner:", error.message);
+    return key === "home_venue" ? mockCtaBanner : null;
+  }
+  return (data as CtaBanner | null) ?? (key === "home_venue" ? mockCtaBanner : null);
+}
+
 export async function getVenues(filters?: {
   city?: string;
+  cityId?: string;
   budgetMax?: number;
   capacityMin?: number;
 }): Promise<Venue[]> {
@@ -140,12 +183,17 @@ export async function getVenues(filters?: {
       .order("name");
     if (error) {
       console.error("getVenues:", error.message);
-      venues = [];
+      venues = mockVenues.filter((v) => v.is_active);
+    } else if (!data?.length) {
+      venues = mockVenues.filter((v) => v.is_active);
     } else {
-      venues = (data ?? []) as Venue[];
+      venues = data as Venue[];
     }
   }
 
+  if (filters?.cityId) {
+    venues = venues.filter((v) => v.city_id === filters.cityId);
+  }
   if (filters?.city) {
     venues = venues.filter((v) =>
       v.city.toLowerCase().includes(filters.city!.toLowerCase())

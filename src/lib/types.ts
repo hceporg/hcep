@@ -73,11 +73,23 @@ export type BlogPost = {
   created_at: string;
 };
 
+export type VenueCity = {
+  id: string;
+  name: string;
+  slug: string;
+  heading: string;
+  subheading: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at?: string;
+};
+
 export type Venue = {
   id: string;
   name: string;
   slug: string;
   city: string;
+  city_id: string | null;
   state: string;
   cover_image: string;
   gallery: string[];
@@ -89,6 +101,18 @@ export type Venue = {
   description: string;
   is_featured: boolean;
   is_active: boolean;
+};
+
+export type CtaBanner = {
+  id: string;
+  key: string;
+  title: string;
+  subtitle: string;
+  media_url: string;
+  media_type: "image" | "video";
+  button_text: string;
+  is_active: boolean;
+  updated_at?: string;
 };
 
 export type PortfolioItem = {

@@ -6,10 +6,11 @@ import { cn } from "@/lib/utils";
 
 const links = [
   { href: "/admin", label: "Overview", exact: true },
-  { href: "/admin/banners", label: "Banners" },
+  { href: "/admin/banners", label: "Hero banners" },
+  { href: "/admin/cta-banners", label: "CTA banners" },
   { href: "/admin/reels", label: "Reels" },
   { href: "/admin/reviews", label: "Reviews" },
-  { href: "/admin/venues", label: "Venues" },
+  { href: "/admin/venues", label: "Venue manager" },
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/portfolio", label: "Portfolio" },
   { href: "/admin/enquiries", label: "Enquiries" },

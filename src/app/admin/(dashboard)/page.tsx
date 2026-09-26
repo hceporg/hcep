@@ -7,9 +7,11 @@ type Card = { label: string; count: number | string; href: string };
 
 export default function AdminOverviewPage() {
   const [cards, setCards] = useState<Card[]>([
-    { label: "Banners", count: "…", href: "/admin/banners" },
+    { label: "Hero banners", count: "…", href: "/admin/banners" },
+    { label: "CTA banners", count: "…", href: "/admin/cta-banners" },
     { label: "Reels", count: "…", href: "/admin/reels" },
     { label: "Reviews", count: "…", href: "/admin/reviews" },
+    { label: "Cities", count: "…", href: "/admin/venues" },
     { label: "Venues", count: "…", href: "/admin/venues" },
     { label: "Blog posts", count: "…", href: "/admin/blog" },
     { label: "Enquiries", count: "…", href: "/admin/enquiries" },
@@ -17,7 +19,16 @@ export default function AdminOverviewPage() {
 
   useEffect(() => {
     async function load() {
-      const tables = ["banners", "reels", "reviews", "venues", "blog_posts", "enquiries"] as const;
+      const tables = [
+        "banners",
+        "cta_banners",
+        "reels",
+        "reviews",
+        "venue_cities",
+        "venues",
+        "blog_posts",
+        "enquiries",
+      ] as const;
       const counts = await Promise.all(
         tables.map(async (table) => {
           const res = await fetch(`/api/admin/${table}?countOnly=true`, {

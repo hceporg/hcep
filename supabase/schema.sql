@@ -120,6 +120,7 @@ create table if not exists venues (
   name text not null,
   slug text not null unique,
   city text not null,
+  city_id uuid,
   state text not null default '',
   cover_image text not null,
   gallery jsonb not null default '[]'::jsonb,
@@ -132,6 +133,39 @@ create table if not exists venues (
   is_featured boolean not null default false,
   is_active boolean not null default true,
   created_at timestamptz default now()
+);
+
+create table if not exists venue_cities (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  slug text not null unique,
+  heading text not null,
+  subheading text not null default '',
+  sort_order int not null default 0,
+  is_active boolean not null default true,
+  created_at timestamptz default now()
+);
+
+-- Link venues.city_id → venue_cities (added after both tables exist)
+do $$ begin
+  alter table venues
+    add constraint venues_city_id_fkey
+    foreign key (city_id) references venue_cities(id) on delete set null;
+exception when duplicate_object then null;
+end $$;
+
+create index if not exists venues_city_id_idx on venues (city_id);
+
+create table if not exists cta_banners (
+  id uuid primary key default gen_random_uuid(),
+  key text not null unique,
+  title text not null default 'Book your venue',
+  subtitle text not null default 'Pick your date. Set your budget. Choose your venue.',
+  media_url text not null,
+  media_type text not null default 'image' check (media_type in ('image', 'video')),
+  button_text text not null default 'Check availability',
+  is_active boolean not null default true,
+  updated_at timestamptz default now()
 );
 
 create table if not exists portfolio (
@@ -190,6 +224,8 @@ alter table reviews enable row level security;
 alter table blog_posts enable row level security;
 alter table media_assets enable row level security;
 alter table venues enable row level security;
+alter table venue_cities enable row level security;
+alter table cta_banners enable row level security;
 alter table portfolio enable row level security;
 alter table enquiries enable row level security;
 alter table faqs enable row level security;
@@ -203,6 +239,8 @@ begin
   drop policy if exists "Public read reviews" on reviews;
   drop policy if exists "Public read published posts" on blog_posts;
   drop policy if exists "Public read venues" on venues;
+  drop policy if exists "Public read venue_cities" on venue_cities;
+  drop policy if exists "Public read cta_banners" on cta_banners;
   drop policy if exists "Public read portfolio" on portfolio;
   drop policy if exists "Public read stats" on site_stats;
   drop policy if exists "Public read settings" on site_settings;
@@ -216,6 +254,8 @@ begin
   drop policy if exists "Admin all posts" on blog_posts;
   drop policy if exists "Admin all media assets" on media_assets;
   drop policy if exists "Admin all venues" on venues;
+  drop policy if exists "Admin all venue_cities" on venue_cities;
+  drop policy if exists "Admin all cta_banners" on cta_banners;
   drop policy if exists "Admin all portfolio" on portfolio;
   drop policy if exists "Admin all stats" on site_stats;
   drop policy if exists "Admin all settings" on site_settings;
@@ -229,6 +269,8 @@ create policy "Public read reels" on reels for select using (is_active = true);
 create policy "Public read reviews" on reviews for select using (is_active = true);
 create policy "Public read published posts" on blog_posts for select using (status = 'published');
 create policy "Public read venues" on venues for select using (is_active = true);
+create policy "Public read venue_cities" on venue_cities for select using (is_active = true);
+create policy "Public read cta_banners" on cta_banners for select using (is_active = true);
 create policy "Public read portfolio" on portfolio for select using (true);
 create policy "Public read stats" on site_stats for select using (true);
 create policy "Public read settings" on site_settings for select using (true);
@@ -244,6 +286,8 @@ create policy "Admin all reviews" on reviews for all to authenticated using ((se
 create policy "Admin all posts" on blog_posts for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
 create policy "Admin all media assets" on media_assets for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
 create policy "Admin all venues" on venues for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all venue_cities" on venue_cities for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
+create policy "Admin all cta_banners" on cta_banners for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
 create policy "Admin all portfolio" on portfolio for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
 create policy "Admin all stats" on site_stats for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
 create policy "Admin all settings" on site_settings for all to authenticated using ((select auth.uid()) is not null) with check ((select auth.uid()) is not null);
@@ -388,3 +432,13 @@ select
   'contact.hcep@gmail.com',
   'Panchwati Plaza, Kaveri Vihar Phase II, Shamsabad, Agra, Basai, Uttar Pradesh 282004'
 where not exists (select 1 from site_settings limit 1);
+
+insert into cta_banners (key, title, subtitle, media_url, media_type, button_text)
+select
+  'home_venue',
+  'Book your venue',
+  'Pick your date. Set your budget. Choose your venue.',
+  'https://videos.pexels.com/video-files/3773486/3773486-uhd_2560_1440_25fps.mp4',
+  'video',
+  'Check availability'
+where not exists (select 1 from cta_banners where key = 'home_venue');

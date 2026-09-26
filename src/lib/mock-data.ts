@@ -1,6 +1,7 @@
 import type {
   Banner,
   BlogPost,
+  CtaBanner,
   FaqItem,
   PortfolioItem,
   Reel,
@@ -8,6 +9,7 @@ import type {
   SiteSettings,
   SiteStats,
   Venue,
+  VenueCity,
 } from "./types";
 
 export const mockStats: SiteStats = {
@@ -28,6 +30,75 @@ export const mockSettings: SiteSettings = {
   address:
     "Panchwati Plaza, Kaveri Vihar Phase II, Shamsabad, Agra, Basai, Uttar Pradesh 282004",
   nav_items: [], // filled from SITE_NAV in getSettings()
+};
+
+export const mockVenueCities: VenueCity[] = [
+  {
+    id: "vc1",
+    name: "Udaipur",
+    slug: "udaipur",
+    heading: "Wedding Venues in Udaipur",
+    subheading: "Lakeside palaces and heritage resorts for royal celebrations.",
+    sort_order: 0,
+    is_active: true,
+  },
+  {
+    id: "vc2",
+    name: "Goa",
+    slug: "goa",
+    heading: "Wedding Venues in Goa",
+    subheading: "Beachfront villas and tropical estates for destination vows.",
+    sort_order: 1,
+    is_active: true,
+  },
+  {
+    id: "vc3",
+    name: "Delhi NCR",
+    slug: "delhi-ncr",
+    heading: "Wedding Venues in Delhi NCR",
+    subheading: "Heritage courtyards and grand banquet spaces near the capital.",
+    sort_order: 2,
+    is_active: true,
+  },
+  {
+    id: "vc4",
+    name: "Mumbai",
+    slug: "mumbai",
+    heading: "Wedding Venues in Mumbai",
+    subheading: "Skyline ballrooms and contemporary celebration spaces.",
+    sort_order: 3,
+    is_active: true,
+  },
+  {
+    id: "vc5",
+    name: "Bangalore",
+    slug: "bangalore",
+    heading: "Wedding Venues in Bangalore",
+    subheading: "Garden estates and elegant outdoor wedding settings.",
+    sort_order: 4,
+    is_active: true,
+  },
+  {
+    id: "vc6",
+    name: "Jaisalmer",
+    slug: "jaisalmer",
+    heading: "Wedding Venues in Jaisalmer",
+    subheading: "Desert forts and golden-sand destination experiences.",
+    sort_order: 5,
+    is_active: true,
+  },
+];
+
+export const mockCtaBanner: CtaBanner = {
+  id: "cta1",
+  key: "home_venue",
+  title: "Book your venue",
+  subtitle: "Pick your date. Set your budget. Choose your venue.",
+  media_url:
+    "https://videos.pexels.com/video-files/3773486/3773486-uhd_2560_1440_25fps.mp4",
+  media_type: "video",
+  button_text: "Check availability",
+  is_active: true,
 };
 
 export const mockBanners: Banner[] = [
@@ -225,6 +296,7 @@ export const mockVenues: Venue[] = [
     name: "The Grand Palace Resort",
     slug: "grand-palace-resort",
     city: "Udaipur",
+    city_id: "vc1",
     state: "Rajasthan",
     cover_image:
       "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80",
@@ -247,6 +319,7 @@ export const mockVenues: Venue[] = [
     name: "Seaside Villa Goa",
     slug: "seaside-villa-goa",
     city: "Goa",
+    city_id: "vc2",
     state: "Goa",
     cover_image:
       "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200&q=80",
@@ -268,6 +341,7 @@ export const mockVenues: Venue[] = [
     name: "Heritage Courtyard Delhi",
     slug: "heritage-courtyard-delhi",
     city: "Delhi NCR",
+    city_id: "vc3",
     state: "Delhi",
     cover_image:
       "https://images.unsplash.com/photo-1519167758481-83f150b4219d?w=1200&q=80",
@@ -289,6 +363,7 @@ export const mockVenues: Venue[] = [
     name: "Skyline Ballroom Mumbai",
     slug: "skyline-ballroom-mumbai",
     city: "Mumbai",
+    city_id: "vc4",
     state: "Maharashtra",
     cover_image:
       "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=1200&q=80",
@@ -310,6 +385,7 @@ export const mockVenues: Venue[] = [
     name: "Garden Estate Bangalore",
     slug: "garden-estate-bangalore",
     city: "Bangalore",
+    city_id: "vc5",
     state: "Karnataka",
     cover_image:
       "https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=1200&q=80",
@@ -331,6 +407,7 @@ export const mockVenues: Venue[] = [
     name: "Desert Fort Jaisalmer",
     slug: "desert-fort-jaisalmer",
     city: "Jaisalmer",
+    city_id: "vc6",
     state: "Rajasthan",
     cover_image:
       "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1200&q=80",

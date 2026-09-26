@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
-import type { Venue } from "@/lib/types";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { Venue, VenueCity } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 
-const CITIES = ["All", "Goa", "Delhi NCR", "Mumbai", "Bangalore", "Udaipur", "Jaisalmer"];
 const BUDGETS = [
   { label: "Any budget", max: Infinity },
   { label: "Under ₹15L", max: 1500000 },
@@ -20,48 +20,90 @@ const CAPACITIES = [
   { label: "500+", min: 500 },
 ];
 
-export function VenueFilters({ venues }: { venues: Venue[] }) {
-  const [city, setCity] = useState("All");
+type Props = {
+  venues: Venue[];
+  cities: VenueCity[];
+};
+
+export function VenueFilters({ venues, cities }: Props) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialSlug = searchParams.get("city") ?? "all";
+
+  const [citySlug, setCitySlug] = useState(initialSlug);
   const [budgetIdx, setBudgetIdx] = useState(0);
   const [capIdx, setCapIdx] = useState(0);
+
+  useEffect(() => {
+    setCitySlug(searchParams.get("city") ?? "all");
+  }, [searchParams]);
+
+  const cityOptions = useMemo(
+    () => [
+      { value: "all", label: "All cities" },
+      ...cities.map((c) => ({ value: c.slug, label: c.name })),
+    ],
+    [cities]
+  );
 
   const filtered = useMemo(() => {
     const budget = BUDGETS[budgetIdx];
     const cap = CAPACITIES[capIdx];
+    const selected =
+      citySlug === "all"
+        ? null
+        : cities.find((c) => c.slug === citySlug) ?? null;
+
     return venues.filter((v) => {
-      if (city !== "All" && !v.city.toLowerCase().includes(city.toLowerCase().replace(" ncr", ""))) {
-        // soft match
-        if (!v.city.toLowerCase().includes(city.toLowerCase().split(" ")[0].toLowerCase())) {
-          return false;
-        }
+      if (selected) {
+        const matchId = v.city_id === selected.id;
+        const matchName =
+          !v.city_id &&
+          v.city.toLowerCase() === selected.name.toLowerCase();
+        if (!matchId && !matchName) return false;
       }
       if (budget.min && v.price_max < budget.min) return false;
       if (budget.max !== Infinity && v.price_min > budget.max) return false;
       if (v.capacity_max < cap.min) return false;
       return true;
     });
-  }, [venues, city, budgetIdx, capIdx]);
+  }, [venues, cities, citySlug, budgetIdx, capIdx]);
+
+  function onCityChange(slug: string) {
+    setCitySlug(slug);
+    const params = new URLSearchParams(searchParams.toString());
+    if (slug === "all") params.delete("city");
+    else params.set("city", slug);
+    const q = params.toString();
+    router.replace(q ? `/venues?${q}` : "/venues", { scroll: false });
+  }
 
   return (
     <div>
       <div className="flex flex-col sm:flex-row flex-wrap gap-3 mb-8">
         <Select
           label="City"
-          value={city}
-          onChange={setCity}
-          options={CITIES.map((c) => ({ value: c, label: c }))}
+          value={citySlug}
+          onChange={onCityChange}
+          options={cityOptions}
         />
         <Select
           label="Budget"
           value={String(budgetIdx)}
           onChange={(v) => setBudgetIdx(Number(v))}
-          options={BUDGETS.map((b, i) => ({ value: String(i), label: b.label }))}
+          options={BUDGETS.map((b, i) => ({
+            value: String(i),
+            label: b.label,
+          }))}
         />
         <Select
           label="Capacity"
           value={String(capIdx)}
           onChange={(v) => setCapIdx(Number(v))}
-          options={CAPACITIES.map((c, i) => ({ value: String(i), label: c.label }))}
+          options={CAPACITIES.map((c, i) => ({
+            value: String(i),
+            label: c.label,
+          }))}
         />
       </div>
 
@@ -87,7 +129,8 @@ export function VenueFilters({ venues }: { venues: Venue[] }) {
                 {venue.name}
               </h3>
               <p className="text-sm text-muted mt-1">
-                {venue.city}, {venue.state}
+                {venue.city}
+                {venue.state ? `, ${venue.state}` : ""}
               </p>
               <div className="mt-3 flex items-center justify-between text-xs text-muted">
                 <span>

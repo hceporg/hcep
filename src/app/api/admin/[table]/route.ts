@@ -6,6 +6,8 @@ const ALLOWED_TABLES = new Set([
   "reels",
   "reviews",
   "venues",
+  "venue_cities",
+  "cta_banners",
   "blog_posts",
   "portfolio",
   "enquiries",
